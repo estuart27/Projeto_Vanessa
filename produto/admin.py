@@ -1,12 +1,8 @@
 from django.contrib import admin
 from .forms import VariacaoObrigatoria
 from . import models
-from django.contrib import admin
-from .forms import VariacaoObrigatoria
-from . import models
 from django.utils.html import format_html
-from django.contrib import admin
-from .models import Produto,Category,SubCategory,Contato
+from .models import Produto, Category, SubCategory, Contato, Postagem, Comentario
 
 
 class VariacaoInline(admin.TabularInline):
@@ -18,7 +14,6 @@ class VariacaoInline(admin.TabularInline):
 
 
 class ProdutoAdmin(admin.ModelAdmin):
-    # form = ProdutoForm
     list_display = [
         'nome', 
         'descricao_curta', 
@@ -30,13 +25,9 @@ class ProdutoAdmin(admin.ModelAdmin):
     ]
     search_fields = ['nome', 'slug']
     list_filter = ['tipo', 'category']
-    prepopulated_fields = {'slug': ('nome',)}  # Preenche automaticamente o campo slug
+    prepopulated_fields = {'slug': ('nome',)}
     ordering = ['nome']
-
-    inlines = [
-        VariacaoInline
-    ]
-
+    inlines = [VariacaoInline]
 
     def get_preco_formatado(self, obj):
         return obj.get_preco_formatado()
@@ -47,18 +38,14 @@ class ProdutoAdmin(admin.ModelAdmin):
     get_preco_promocional_formatado.short_description = 'Preço Promo.'
 
 
-
 class SubCategoryInline(admin.TabularInline):
     model = SubCategory
-    extra = 1  # Permite adicionar várias subcategorias direto na categoria
+    extra = 1  
 
 class CategoryAdmin(admin.ModelAdmin):
     inlines = [SubCategoryInline]
 
 
-from django.contrib import admin
-from .models import Postagem, Comentario
-
 @admin.register(Postagem)
 class PostagemAdmin(admin.ModelAdmin):
     list_display = ('titulo', 'autor', 'categoria', 'data_criacao', 'quantidade_comentarios')
@@ -67,28 +54,13 @@ class PostagemAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('titulo',)}
     date_hierarchy = 'data_criacao'
 
-@admin.register(Comentario)
-class ComentarioAdmin(admin.ModelAdmin):
-    list_display = ('autor', 'postagem', 'data_criacao')
-    list_filter = ('data_criacao', 'autor')
-    search_fields = ('conteudo', 'autor__username', 'postagem__titulo')
-
-from django.contrib import admin
-from .models import Postagem, Comentario
-
-@admin.register(Postagem)
-class PostagemAdmin(admin.ModelAdmin):
-    list_display = ('titulo', 'autor', 'categoria', 'data_criacao', 'quantidade_comentarios')
-    list_filter = ('categoria', 'data_criacao', 'autor')
-    search_fields = ('titulo', 'conteudo')
-    prepopulated_fields = {'slug': ('titulo',)}
-    date_hierarchy = 'data_criacao'
 
 @admin.register(Comentario)
 class ComentarioAdmin(admin.ModelAdmin):
     list_display = ('autor', 'postagem', 'data_criacao')
     list_filter = ('data_criacao', 'autor')
     search_fields = ('conteudo', 'autor__username', 'postagem__titulo')
+
 
 admin.site.register(models.Produto, ProdutoAdmin)
 admin.site.register(models.Variacao)

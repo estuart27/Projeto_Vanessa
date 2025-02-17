@@ -1,18 +1,15 @@
 from django.conf import settings
-import os
 from PIL import Image
 from django.db import models
 from django.utils.text import slugify
 from utils import utils
-<<<<<<< HEAD
 from django.db import models
-from django.contrib.auth.models import User
-from django.utils import timezone
-=======
 from django.utils import timezone
 from django.contrib.auth.models import User
->>>>>>> 1cff239 (Primeiro Comiit)
 from django.urls import reverse
+import os
+from imagekit.models import ProcessedImageField
+from imagekit.processors import ResizeToFill
 
 
 class Category(models.Model):
@@ -26,8 +23,6 @@ class Category(models.Model):
         return self.name
     
 
-
-<<<<<<< HEAD
 class Postagem(models.Model):
     titulo = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
@@ -63,7 +58,6 @@ class Comentario(models.Model):
     
 
     
-=======
 class SubCategory(models.Model):
     name = models.CharField(max_length=50)
     category = models.ForeignKey(
@@ -78,16 +72,6 @@ class SubCategory(models.Model):
 
     def __str__(self):
         return f"{self.category.name} -> {self.name}"
-
-
-from django.db import models
-from django.utils.text import slugify
-from PIL import Image
-import os
-from django.conf import settings
-from imagekit.models import ProcessedImageField
-from imagekit.processors import ResizeToFill
->>>>>>> 1cff239 (Primeiro Comiit)
 
 class Produto(models.Model):
     nome = models.CharField(max_length=255)

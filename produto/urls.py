@@ -15,17 +15,13 @@ urlpatterns = [
     path('carrinho/', views.Carrinho.as_view(), name="carrinho"),
     path('resumodacompra/', views.ResumoDaCompra.as_view(), name="resumodacompra"),
     path('busca/', views.Busca.as_view(), name="busca"),
-<<<<<<< HEAD
-    path('cart/', views.cart, name="cart"),
     path('contact/', views.contact, name="contact"),
-     path('blog/', views.ListaPostagensView.as_view(), name='blog'),
+    path('blog/', views.ListaPostagensView.as_view(), name='blog'),
     path('post/<slug:slug>/', views.DetalhesPostagemView.as_view(), name='detalhes_post'),
-]
-=======
 
     #Novos 
-    path('index/', views.index, name="index"),
-    path('about/', views.about, name="about"),
+     path('index/', views.index, name="index"),
+     path('about/', views.about, name="about"),
      path('contact/', views.contact, name="contact"),
      path('gerar-pagamento/', views.GerarPagamentoMercadoPago.as_view(), name='gerar_pagamento'),
      path('blog/', views.ListaPostagensView.as_view(), name='blog'),
@@ -35,10 +31,6 @@ urlpatterns = [
      path('politica-de-privacidade/', views.politica, name='politica'),
      path('trocas-e-devolucoes/', views.troca, name='troca'),
 
-#     path('pagamento-sucesso/', views.PagamentoSucesso.as_view(), name='pagamento_sucesso'),
-#     path('pagamento-falhou/', views.PagamentoFalhou.as_view(), name='pagamento_falhou'),
-#     path('pagamento-pendente/', views.PagamentoPendente.as_view(), name='pagamento_pendente'),
 
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
->>>>>>> 1cff239 (Primeiro Comiit)

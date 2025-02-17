@@ -1,12 +1,7 @@
 from django.forms.models import BaseInlineFormSet
 from django import forms
-from django import forms
 from django.core.exceptions import ValidationError
-from .models import Produto  # Importe seu modelo Produto
-
-
-from django import forms
-from .models import Contato
+from .models import Produto,Comentario,Contato  # Importe seu modelo Produto
 
 class ContatoForm(forms.ModelForm):
     class Meta:
@@ -38,12 +33,6 @@ class VariacaoObrigatoria(BaseInlineFormSet):
         form.empty_permitted = False
         return form
     
-
-
-
-from django import forms
-from .models import Comentario
-
 class FormularioComentario(forms.ModelForm):
     class Meta:
         model = Comentario

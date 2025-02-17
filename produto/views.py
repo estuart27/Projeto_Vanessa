@@ -2,23 +2,21 @@ from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.views.generic import ListView, DetailView, View
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
-<<<<<<< HEAD
-from django.db.models import Q
-from . import models
+from django.db.models import Q, Count
+from .models import Produto, Category, Postagem,Variacao
 from perfil.models import Perfil
-from .models import Category
-from django.views.generic import ListView, DetailView
-from django.shortcuts import render
-from .models import Postagem, Category
-from django.db.models import Count
+from .forms import ContatoForm, FormularioComentario
 
-#   CODIGO A SEER UTILIZADO
-def blog(request):
-    return render(request, 'produto/blog.html')
+import mercadopago
+import json
+from django.conf import settings
 
-def blog(request):
-    return render(request, 'produto/blog.html')
 
+def about(request):
+    return render(
+        request,
+        'produto/about.html',
+    )
 
 class ListaPostagensView(ListView):
     model = Postagem
@@ -49,27 +47,6 @@ class DetalhesPostagemView(DetailView):
         )
         return contexto
 
-=======
-from django.db.models import Q, Count
-from django.views.decorators.csrf import csrf_exempt
-from django.conf import settings
->>>>>>> 1cff239 (Primeiro Comiit)
-
-import mercadopago
-import json
-
-from . import models
-from .models import Produto, Category, Postagem
-from perfil.models import Perfil
-from .forms import ContatoForm,FormularioComentario
-
-
-
-from django.shortcuts import render
-from .models import Produto, Category
-
-from django.shortcuts import render
-from .models import Produto, Category
 
 def index(request):
     # Obtém todos os produtos
@@ -114,7 +91,6 @@ def index(request):
     return render(request, 'produto/index.html', context)
 
 
-
 def troca(request):
     return render(
         request,
@@ -134,19 +110,12 @@ def politica(request):
     )
 
 
-
 def checkout(request):
     return render(
         request,
         'produto/checkout.html',
     )
 
-
-def about(request):
-    return render(
-        request,
-        'produto/about.html',
-    )
 
 def contact(request):
     if request.method == 'POST':
@@ -278,7 +247,7 @@ class Busca(ListaProdutos):
 
 
 class DetalheProduto(DetailView):
-    model = models.Produto
+    model = Produto
     template_name = 'produto/product-single.html'
     context_object_name = 'produto'
     slug_url_kwarg = 'slug'
@@ -301,7 +270,7 @@ class DetalheProduto(DetailView):
         context['desconto'] = desconto
         
         # Obtém os produtos relacionados (da mesma categoria)
-        produtos_relacionados = models.Produto.objects.filter(category=produto.category).exclude(id=produto.id)[:4]
+        produtos_relacionados = Produto.objects.filter(category=produto.category).exclude(id=produto.id)[:4]
         
         # Adiciona os produtos relacionados ao contexto
         context['produtos_relacionados'] = produtos_relacionados
@@ -322,7 +291,7 @@ class AdicionarAoCarrinho(View):
             messages.error(self.request, 'Produto não existe')
             return redirect(http_referer)
 
-        variacao = get_object_or_404(models.Variacao, id=variacao_id)
+        variacao = get_object_or_404(Variacao, id=variacao_id)
         variacao_estoque = variacao.estoque
         produto = variacao.produto
 
