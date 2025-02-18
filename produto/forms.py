@@ -33,6 +33,7 @@ class VariacaoObrigatoria(BaseInlineFormSet):
         form.empty_permitted = False
         return form
     
+    
 class FormularioComentario(forms.ModelForm):
     class Meta:
         model = Comentario

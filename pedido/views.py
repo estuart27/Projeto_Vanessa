@@ -53,6 +53,8 @@ class Pagar(DispatchLoginRequiredMixin, DetailView):
 
 
 
+from django.urls import reverse
+
 class SalvarPedido(View):
     template_name = 'pedido/pagar.html'
 
@@ -112,6 +114,7 @@ class SalvarPedido(View):
 
         # Inicializa o SDK do Mercado Pago
         sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
+        nome = settings.MERCADO_PAGO_STORE_NAME
 
         # Prepara os itens para o Mercado Pago
         items = []
@@ -121,7 +124,7 @@ class SalvarPedido(View):
                 "title": item['produto_nome'],
                 "quantity": item['quantidade'],
                 "currency_id": "BRL",
-                "unit_price": float(item['preco_quantitativo'])
+                "unit_price": float(item['preco_unitario'])
             })
 
         # Configura os dados do pagamento
@@ -129,13 +132,14 @@ class SalvarPedido(View):
             "items": items,
             "external_reference": str(self.request.user.id),  # Usando o ID do usuário como referência temporária
             "back_urls": {
-                "success": "http://127.0.0.1:8000/pedido/pagamento-confirmado/",
-                "failure": "http://127.0.0.1:8000/produto/resumodacompra/",
-                "pending": "http://127.0.0.1:8000/produto/resumodacompra/"
+                "success": self.request.build_absolute_uri(reverse('pedido:pagamento_confirmado')),
+                "failure": self.request.build_absolute_uri(reverse('produto:resumodacompra')),
+                "pending": self.request.build_absolute_uri(reverse('produto:resumodacompra'))
+
             },
             "auto_return": "approved",
             "binary_mode": True,
-            "statement_descriptor": "Sua Loja"
+            "statement_descriptor": nome
         }
 
         try:
@@ -160,7 +164,8 @@ class SalvarPedido(View):
                 f'Erro ao processar pagamento: {str(e)}'
             )
         
-        return redirect('produto:resumodacompra')
+        return redirect('pedido:lista')
+
     
 
 

@@ -1,5 +1,6 @@
 from django.contrib.messages import constants
 import os
+from dotenv import load_dotenv
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -132,7 +133,11 @@ SESSION_SAVE_EVERY_REQUEST = False
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-MERCADO_PAGO_ACCESS_TOKEN = "TEST-1363675576556254-021312-efbb0c786d4754ab6cebacb5aeb42be4-1218814315"
+load_dotenv()  # Carrega as variáveis de ambiente do arquivo .env
+
+MERCADO_PAGO_ACCESS_TOKEN = os.getenv('MERCADO_PAGO_ACCESS_TOKEN')
+
+MERCADO_PAGO_STORE_NAME = 'Vivan Calçados'
 
 # Configuração do ambiente (True para sandbox/teste, False para produção)
 MERCADO_PAGO_SANDBOX = True

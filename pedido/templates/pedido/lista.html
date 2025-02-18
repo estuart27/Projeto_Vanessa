@@ -26,8 +26,12 @@
                     <th scope="row">{{ pedido }}</td>
                     <td>{{ pedido.total|formata_preco }}</td>
                     <td>{{ pedido.qtd_total }}</td>
-                    <td>{{ pedido.get_status_display }}</td>
                     <td>
+                        <span style="color: #28a745; font-size: 0.9em; font-weight: bold; text-transform: uppercase; border: 1px solid #28a745; padding: 3px 6px; border-radius: 6px; background-color: #eaf8e5;">
+                            {{ pedido.get_status_display }}
+                        </span>
+                    </td>
+                                        <td>
                         <a href="{% url 'pedido:detalhe' pedido.id %}">
                             Ver <i class="fas fa-search-plus ml-2"></i>
                         </a>

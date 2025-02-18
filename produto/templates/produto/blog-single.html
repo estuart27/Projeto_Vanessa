@@ -78,61 +78,38 @@
 
                     </div>
 
-                    <div class="pt-5 mt-5">
-                        <h3 class="mb-5">{{ postagem.quantidade_comentarios }} Comentários</h3>
+                    <div class="pt-5 mt-5 bg-gray-50 rounded-lg p-6">
                         {% if postagem.comentarios.exists %}
-                        <h3 class="mb-5">{{ postagem.comentarios.count }} Comentário{{ postagem.comentarios.count|pluralize }}</h3>
-                        <ul class="comment-list">
+                        <h3 class="mb-5 text-xl font-semibold text-gray-800">{{ postagem.comentarios.count }} Comentário{{ postagem.comentarios.count|pluralize }}</h3>
+                        <ul class="comment-list space-y-6">
                             {% for comentario in postagem.comentarios.all %}
-                            <li class="comment">
-                                <div class="vcard bio">
-                                    {% if comentario.usuario.profile_image %}
-                                    <img src="{{ comentario.usuario.profile_image.url }}" alt="{{ comentario.usuario.username }}">
-                                    {% else %}
-                                    <img src="{% static 'images/usuario.png' %}" 
-                                         alt="Default Profile"
-                                         class="w-12 h-12 rounded-full">
-                                    {% endif %}
-                                </div>
-                                <div class="comment-body">
-                                    <h3>{{ comentario.usuario.username }}</h3>
-                                    <div class="meta">{{ comentario.data_criacao|date:"d/m/Y" }}</div>
-                                    <p>{{ comentario.conteudo }}</p>
+                            <li class="comment bg-white rounded-xl shadow-sm p-4 transition hover:shadow-md">
+                                <div class="flex items-start space-x-4">
+                                    <div class="vcard bio flex-shrink-0">
+                                        {% if comentario.usuario.profile_image %}
+                                        <img src="{{ comentario.usuario.profile_image.url }}" 
+                                             alt="{{ comentario.usuario.username }}"
+                                             class="w-12 h-12 rounded-full object-cover border-2 border-gray-200">
+                                        {% else %}
+                                        <img src="{% static 'images/usuario.png' %}" 
+                                             alt="Default Profile"
+                                             class="w-12 h-12 rounded-full object-cover border-2 border-gray-200">
+                                        {% endif %}
+                                    </div>
+                                    <div class="comment-body flex-grow">
+                                        <h3 class="text-lg font-medium text-gray-900">{{ comentario.usuario.username }}</h3>
+                                        <div class="meta text-sm text-gray-500 mb-2">{{ comentario.data_criacao|date:"d/m/Y" }}</div>
+                                        <p class="text-gray-700 leading-relaxed mb-3">{{ comentario.conteudo }}</p>
                                     <p><a href="#" class="reply">Responder</a></p>
                                 </div>
-
-                                {% if comentario.respostas.exists %}
-                                <ul class="children">
-                                    {% for resposta in comentario.respostas.all %}
-                                    <li class="comment">
-                                        <div class="vcard bio">
-                                            {% if resposta.usuario.profile_image %}
-                                            <img src="{{ resposta.usuario.profile_image.url }}" alt="{{ resposta.usuario.username }}">
-                                            {% endif %}
-                                        </div>
-                                        <div class="comment-body">
-                                            <h3>{{ resposta.usuario.username }}</h3>
-                                            <div class="meta">{{ resposta.data_criacao|date:"d/m/Y" }}</div>
-                                            <p>{{ resposta.conteudo }}</p>
-                                            <p><a href="#" class="reply">Responder</a></p>
-                                        </div>
-                                    </li>
-                                    {% endfor %}
-                                </ul>
-                                {% endif %}
-                            </li>
                             {% endfor %}
                         </ul>
 
-                        <div class="comment-form-wrap pt-5">
-                            <h3 class="mb-5">Deixe um comentário</h3>
-                            {% comment %} <form action="{% url 'produto:adicionar_comentario' postagem.slug %}" method="post" class="p-5 bg-light"> {% endcomment %}
-                        {% endif %}
 
                         <div class="comment-form-wrap pt-5">
-                            <h4 class="mb-5">Deixe um comentário</h4>
                             <form action="{% url 'produto:adicionar_comentario' postagem.slug %}" method="post" class="p-5 bg-light">
                                 {% csrf_token %}
+                                <h4 class="mb-5">Deixe um comentário</h4>
                                 <div class="form-group">
                                     <label for="message">Mensagem</label>
                                     <textarea name="conteudo" id="message" cols="30" rows="10" class="form-control"></textarea>
@@ -144,6 +121,8 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
+
 
                 <div class="col-lg-4 sidebar ftco-animate">
                     <div class="sidebar-box">
@@ -180,7 +159,7 @@
                         </div>
                         {% endfor %}
                     </div>
-
+{% comment %} 
                     <div class="sidebar-box ftco-animate">
                         <h3 class="heading">Tags</h3>
                         <div class="tagcloud">
@@ -188,7 +167,7 @@
                             <a href="#" class="tag-cloud-link">{{ tag.name }}</a>
                             {% endfor %}
                         </div>
-                    </div>
+                    </div> {% endcomment %}
                 </div>
             </div>
         </div>

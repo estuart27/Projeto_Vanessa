@@ -168,7 +168,7 @@ class Login(View):
             self.request,
             'Você fez login no sistema e pode concluir sua compra.'
         )
-        return redirect('produto:carrinho')
+        return redirect('produto:index')
 
 
 class Logout(View):

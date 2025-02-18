@@ -426,51 +426,61 @@ class ResumoDaCompra(View):
 
 
 class GerarPagamentoMercadoPago(View):
-    def get(self, *args, **kwargs):
-        if not self.request.user.is_authenticated:
-            messages.error(
-                self.request,
-                'Você precisa fazer login.'
-            )
-            return redirect('perfil:criar')
+    def get(self, request, *args, **kwargs):
+        # Verifica se o usuário está autenticado
+        if not request.user.is_authenticated:
+            messages.error(request, 'Você precisa fazer login.')
+            return redirect(reverse('perfil:criar'))
 
-        if not self.request.session.get('carrinho'):
-            messages.error(
-                self.request,
-                'Carrinho vazio.'
-            )
-            return redirect('produto:lista')
+        # Verifica se há itens no carrinho
+        carrinho = request.session.get('carrinho')
+        if not carrinho:
+            messages.error(request, 'Carrinho vazio.')
+            return redirect(reverse('produto:lista'))
 
-        carrinho = self.request.session.get('carrinho')
-        
-        # Inicializa o SDK do Mercado Pago
-        sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
+        try:
+            sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
+            nome = settings.MERCADO_PAGO_STORE_NAME
+            # Prepara os itens para pagamento
+            items = [
+                {
+                    "id": item_id,
+                    "title": item_data['produto_nome'],
+                    "quantity": item_data['quantidade'],
+                    "currency_id": "BRL",
+                    "unit_price": float(item_data['preco_unitario'])  # Usar o preço unitário correto
+                }
+                for item_id, item_data in carrinho.items()
+            ]
 
-        # Prepara os itens do carrinho para o Mercado Pago
-        items = []
-        for item_id, item in carrinho.items():
-            items.append({
-                "id": item_id,
-                "title": item['produto_nome'],
-                "quantity": item['quantidade'],
-                "currency_id": "BRL",
-                "unit_price": float(item['preco_quantitativo'])
-            })
+            # Define as URLs de retorno
+            base_url = request.build_absolute_uri('/')  # Gera a URL base do site
+            back_urls = {
+                "success": request.build_absolute_uri(reverse('pedido:pagamento_confirmado')),
+                "failure": request.build_absolute_uri(reverse('produto:resumodacompra')),
+                "pending": request.build_absolute_uri(reverse('produto:resumodacompra'))
 
-        # Primeiro, redireciona para salvar o pedido
-        response = redirect('pedido:salvarpedido')
-        
-        # Armazena os dados do pagamento na sessão para uso posterior
-        self.request.session['payment_data'] = {
-            "items": items,
-            "back_urls": {
-                "success": "http://127.0.0.1:8000/",
-                "failure": "http://127.0.0.1:8000/produto/resumodacompra/",
-                "pending": "http://127.0.0.1:8000/produto/resumodacompra/"
-            },
-            "auto_return": "approved",
-            "binary_mode": True,
-            "statement_descriptor": "Sua Loja"
-        }
-        
-        return response
+            }
+
+            # Salva os dados do pagamento na sessão
+            request.session['payment_data'] = {
+                "items": items,
+                "back_urls": back_urls,
+                "auto_return": "approved",
+                "binary_mode": True,
+                "statement_descriptor": nome,
+            }
+            request.session.modified = True  # Garante que a sessão será salva
+
+            # Redireciona para salvar o pedido antes de gerar o pagamento
+            return redirect(reverse('pedido:salvarpedido'))
+
+        except Exception as e:
+            messages.error(request, f"Erro ao processar pagamento: {str(e)}")
+            return redirect(reverse('produto:lista'))
+
+
+
+    
+
+

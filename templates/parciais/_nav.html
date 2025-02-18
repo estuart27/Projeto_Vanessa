@@ -34,20 +34,20 @@
       <div class="collapse navbar-collapse" id="ftco-nav">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item"><a href="{% url 'produto:index' %}" class="nav-link">Home</a></li>
-          {% comment %} <li class="nav-item"><a href="{% url 'produto:lista' %}" class="nav-link">About</a></li>
-          <li class="nav-item"><a href="{% url 'produto:blog' %}" class="nav-link">Blog</a></li>
-          <li class="nav-item"><a href="{% url 'produto:index' %}" class="nav-link">Home</a></li> {% endcomment %}
           <li class="nav-item"><a href="{% url 'produto:lista' %}" class="nav-link">Shop</a></li>
           {% for category in categories %}
-          <li class="nav-item dropdown active">
-            <a class="nav-link dropdown-toggle" href="#" id="dropdown04" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ category.name }}</a>
-            <div class="dropdown-menu" aria-labelledby="dropdown04">
-                {% for subcategory in category.subcategories.all %}
-                <a class="dropdown-item" href="?category={{ category.id }}&subcategory={{ subcategory.id }}">{{ subcategory.name }}</a>
-                {% endfor %}
-            </div>
-          </li>
-            {% endfor %}
+          {% if forloop.counter <= 5 %}
+            <li class="nav-item dropdown active">
+              <a class="nav-link dropdown-toggle" href="#" id="dropdown04" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ category.name }}</a>
+              <div class="dropdown-menu" aria-labelledby="dropdown04">
+                  {% for subcategory in category.subcategories.all %}
+                  <a class="dropdown-item" href="?category={{ category.id }}&subcategory={{ subcategory.id }}">{{ subcategory.name }}</a>
+                  {% endfor %}
+              </div>
+            </li>
+          {% endif %}
+        {% endfor %}
+        
           {% if request.user.is_authenticated %}
           <li class="nav-item dropdown active">
             <a class="nav-link dropdown-toggle" href="#" id="dropdown04" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Mais</a>
