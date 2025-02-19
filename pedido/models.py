@@ -19,6 +19,10 @@ class Pedido(models.Model):
         )
     )
 
+    class Meta:
+        verbose_name = 'Pedidos'
+        verbose_name_plural = 'Pedidos Feitos'
+
     def __str__(self):
         return f'Pedido N. {self.pk}'
 

@@ -1,8 +1,47 @@
-{% if messages %}
+{% comment %} {% if messages %}
     <br>
     {% for message in messages %}
         <div class="alert {{ message.tags }}" role="alert">
             {{ message }}
         </div>
     {% endfor %}
+{% endif %} {% endcomment %}
+
+{% if messages %}
+<div id="message-container">
+    {% for message in messages %}
+        <div class="alert message-float">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+<style>
+    .message-float {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #28a745;
+        color: white;
+        padding: 12px 18px;
+        border-radius: 8px;
+        box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+        animation: slideIn 0.2s ease-out, fadeOut 2s ease-in-out forwards 1s;
+        font-weight: bold;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(40px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes fadeOut {
+        0% { opacity: 1; }
+        50% { opacity: 1; }
+        100% { opacity: 0; transform: translateX(30px); }
+    }
+</style>
 {% endif %}

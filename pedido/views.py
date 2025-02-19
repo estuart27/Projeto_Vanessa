@@ -55,6 +55,8 @@ class Pagar(DispatchLoginRequiredMixin, DetailView):
 
 from django.urls import reverse
 
+
+#Viwes Pedidos 
 class SalvarPedido(View):
     template_name = 'pedido/pagar.html'
 
@@ -166,19 +168,14 @@ class SalvarPedido(View):
         
         return redirect('pedido:lista')
 
-    
-
 
 @method_decorator(csrf_exempt, name='dispatch')
 class PagamentoConfirmado(View):
     def get(self, *args, **kwargs):
         status = self.request.GET.get('status')
-        external_reference = self.request.GET.get('external_reference')
         
         try:
-            # Se o pagamento foi aprovado
             if status == 'approved':
-                # Recupera os dados do pedido da sessão
                 dados_pedido = self.request.session.get('dados_pedido')
                 
                 if dados_pedido:
@@ -208,7 +205,7 @@ class PagamentoConfirmado(View):
                         ]
                     )
 
-                    # Limpa os dados temporários da sessão
+                    # Limpa os dados temporários
                     if 'dados_pedido' in self.request.session:
                         del self.request.session['dados_pedido']
                     if 'carrinho_temp' in self.request.session:
@@ -224,9 +221,8 @@ class PagamentoConfirmado(View):
                         self.request,
                         'Dados do pedido não encontrados.'
                     )
-                    return redirect('produto:resumodacompra')
             else:
-                # Se o pagamento falhou, restaura o carrinho
+                # Restaura o carrinho se o pagamento falhou
                 if 'carrinho_temp' in self.request.session:
                     self.request.session['carrinho'] = self.request.session['carrinho_temp']
                     del self.request.session['carrinho_temp']
@@ -235,7 +231,8 @@ class PagamentoConfirmado(View):
                     self.request,
                     'Erro no pagamento. Por favor, tente novamente.'
                 )
-                return redirect('produto:resumodacompra')
+            
+            return redirect('produto:resumodacompra')
                 
         except Exception as e:
             messages.warning(

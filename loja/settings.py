@@ -141,3 +141,15 @@ MERCADO_PAGO_STORE_NAME = 'Vivan Calçados'
 
 # Configuração do ambiente (True para sandbox/teste, False para produção)
 MERCADO_PAGO_SANDBOX = True
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'seu-servidor-smtp.com'  # ex: smtp.gmail.com
+EMAIL_PORT = 587  # porta padrão para TLS
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'seu-email@exemplo.com'
+EMAIL_HOST_PASSWORD = 'sua-senha'
+DEFAULT_FROM_EMAIL = 'Sua Loja <seu-email@exemplo.com>'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

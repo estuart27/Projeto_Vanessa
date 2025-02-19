@@ -3,7 +3,7 @@
 
 <html lang="en">
   <head>
-    <title>Winkel - Free Bootstrap 4 Template by Colorlib</title>
+    <title>Detalhe Do Produto</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
@@ -35,44 +35,19 @@
 			<div class="row no-gutters slider-text align-items-center justify-content-center">
 				<div class="col-md-9 ftco-animate text-center">
 					<p class="breadcrumbs" style="color: white;">
-						<span class="mr-2"><a href="{% url 'produto:index' %}" style="color: white;">Home</a></span> 
-						<span style="color: white;">Blog</span>
+						<span class="mr-2"><a href="{% url 'produto:index' %}" style="color: white;">Detalhes</a></span> 
+						<span style="color: white;">do Produto</span>
 					</p>
-					<h1 class="mb-0 bread" style="color: white;">Blog</h1>
+					<h1 class="mb-0 bread" style="color: white;">Detalhe</h1>
 				</div>
 			</div>
 		</div>
 	</div>
 	
 
-{% if messages %}
-    <div id="message-container">
-        {% for message in messages %}
-            <div class="alert alert-success message-float">
-                {{ message }}
-            </div>
-        {% endfor %}
-    </div>
-    <style>
-        .message-float {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: #28a745; /* Cor que você gosta */
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-            animation: fadeOut 5s ease-in-out forwards;
-        }
+	{% include 'parciais/_messages.html' %}
 
-        @keyframes fadeOut {
-            0% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-    </style>
-{% endif %}
+
 
 <section class="ftco-section">
     <div class="container">

@@ -35,13 +35,14 @@ class Postagem(models.Model):
     
     class Meta:
         verbose_name = 'Postagem'
-        verbose_name_plural = 'Postagens'
-    
+        verbose_name_plural = 'Blog'
+        
     def __str__(self):
         return self.titulo
     
     def get_absolute_url(self):
         return reverse('blog:detalhes_post', kwargs={'slug': self.slug})
+
 
 class Comentario(models.Model):
     postagem = models.ForeignKey(Postagem, on_delete=models.CASCADE, related_name='comentarios')
@@ -72,6 +73,7 @@ class SubCategory(models.Model):
 
     def __str__(self):
         return f"{self.category.name} -> {self.name}"
+
 
 class Produto(models.Model):
     nome = models.CharField(max_length=255)
@@ -136,6 +138,10 @@ class Produto(models.Model):
 
     def __str__(self):
         return self.nome
+    
+    class Meta:
+        verbose_name = 'Produtos'
+        verbose_name_plural = 'Produtos da Loja'
 
 
 
@@ -174,7 +180,7 @@ class Contato(models.Model):
 
     class Meta:
         verbose_name = 'Contato'
-        verbose_name_plural = 'Contatos'
+        verbose_name_plural = 'Feedback dos Clientes'
 
 
 class Postagem(models.Model):

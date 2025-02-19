@@ -48,19 +48,13 @@ class DetalhesPostagemView(DetailView):
         return contexto
 
 
+from django.shortcuts import render
+from .models import Produto, Category
+
 def index(request):
-    # Obtém todos os produtos
-    queryset = Produto.objects.all()
-
-    # Filtra por categoria e subcategoria, se houver na requisição
-    category_id = request.GET.get('category')
-    subcategory_id = request.GET.get('subcategory')
-
-    if category_id:
-        queryset = queryset.filter(category_id=category_id)
-
-    if subcategory_id:
-        queryset = queryset.filter(subcategory_id=subcategory_id)
+    # Obtém apenas os 4 primeiros produtos
+    # queryset = Produto.objects.all()[:4]
+    queryset = Produto.objects.order_by('?')[:4]
 
     # Obtém todas as categorias
     categories = Category.objects.prefetch_related('subcategories').all()
@@ -83,8 +77,6 @@ def index(request):
     context = {
         'produtos': queryset,
         'categories': categories,
-        'selected_category': category_id,
-        'selected_subcategory': subcategory_id,
         'produtos_com_desconto': produtos_com_desconto,
     }
 
@@ -157,6 +149,7 @@ class DetalhesPostagemView(DetailView):
             contagem_posts=Count('postagem')
         )
         return contexto
+
 
 def adicionar_comentario(request, slug):
     postagem = get_object_or_404(Postagem, slug=slug)
@@ -482,5 +475,3 @@ class GerarPagamentoMercadoPago(View):
 
 
     
-
-
