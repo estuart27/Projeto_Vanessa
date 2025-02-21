@@ -144,12 +144,12 @@ MERCADO_PAGO_SANDBOX = True
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'seu-servidor-smtp.com'  # ex: smtp.gmail.com
+
+
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587  # porta padrão para TLS
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'seu-email@exemplo.com'
-EMAIL_HOST_PASSWORD = 'sua-senha'
-DEFAULT_FROM_EMAIL = 'Sua Loja <seu-email@exemplo.com>'
+EMAIL_HOST_USER = 'silvestreestuart@gmail.com' #Email da Usuario
+EMAIL_HOST_PASSWORD = 'zjlq aaue smer dbot'
+DEFAULT_FROM_EMAIL = 'silvestreestuart@gmail.com'
 
-
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

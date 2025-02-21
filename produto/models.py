@@ -22,6 +22,23 @@ class Category(models.Model):
     def __str__(self):
         return self.name
     
+    
+class SubCategory(models.Model):
+    name = models.CharField(max_length=50)
+    category = models.ForeignKey(
+        Category, 
+        on_delete=models.CASCADE, 
+        related_name="subcategories"
+    )
+
+    class Meta:
+        verbose_name = 'Subcategoria'
+        verbose_name_plural = 'Subcategorias'
+
+    def __str__(self):
+        return f"{self.category.name} -> {self.name}"
+
+    
 
 class Postagem(models.Model):
     titulo = models.CharField(max_length=200)
@@ -57,22 +74,6 @@ class Comentario(models.Model):
     def __str__(self):
         return f'Comentário de {self.autor} em {self.postagem}'
     
-
-    
-class SubCategory(models.Model):
-    name = models.CharField(max_length=50)
-    category = models.ForeignKey(
-        Category, 
-        on_delete=models.CASCADE, 
-        related_name="subcategories"
-    )
-
-    class Meta:
-        verbose_name = 'Subcategoria'
-        verbose_name_plural = 'Subcategorias'
-
-    def __str__(self):
-        return f"{self.category.name} -> {self.name}"
 
 
 class Produto(models.Model):

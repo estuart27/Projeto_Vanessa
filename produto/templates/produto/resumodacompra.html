@@ -7,16 +7,14 @@
 {% include 'parciais/_messages.html' %}
 
 <div class="container py-3">
-    <!-- Cabeçalho simples -->
     <div class="checkout-header text-center mb-4">
-        <h1>Finalizar Compra</h1>
+        <h1 class="mobile-title">Finalizar Compra</h1>
     </div>
 
-    <!-- Container principal -->
     <div class="checkout-container bg-white rounded p-4">
         <!-- Produtos -->
-        <div class="section mb-5">
-            <div class="section-header border-bottom mb-4">
+        <div class="section mb-4">
+            <div class="section-header border-bottom mb-3">
                 <h2 class="h4">Produtos</h2>
             </div>
             {% include 'parciais/_carrinho.html' %}
@@ -25,83 +23,148 @@
             </div>
         </div>
 
-        <!-- Dados Pessoais -->
-        <div class="section mb-5">
-            <div class="section-header d-flex justify-content-between border-bottom mb-4">
-                <h2 class="h4">Dados Pessoais</h2>
-                <a href="{% url 'perfil:criar' %}" class="link-primary">Editar</a>
+        <!-- Dados Pessoais - Reformulado para mobile -->
+        <div class="section mb-4">
+            <div class="section-header d-flex justify-content-between align-items-center border-bottom mb-3">
+                <h2 class="h4 mb-0">Dados Pessoais</h2>
+                <a href="{% url 'perfil:criar' %}" class="btn btn-link text-primary p-0">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
             </div>
-            <div class="row">
-                <div class="col-md-3 mb-3">
-                    <label class="text-muted">Nome:</label>
-                    <div>{{ usuario.first_name }}</div>
+            <div class="personal-info-cards">
+                <div class="info-card mb-3">
+                    <div class="info-card-header">
+                        <i class="fas fa-user text-primary"></i>
+                        <span>Nome Completo</span>
+                    </div>
+                    <div class="info-card-content">
+                        {{ usuario.first_name }} {{ usuario.last_name }}
+                    </div>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <label class="text-muted">Sobrenome:</label>
-                    <div>{{ usuario.last_name }}</div>
+
+                <div class="info-card mb-3">
+                    <div class="info-card-header">
+                        <i class="fas fa-id-card text-primary"></i>
+                        <span>CPF</span>
+                    </div>
+                    <div class="info-card-content">
+                        {{ usuario.perfil.cpf }}
+                    </div>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <label class="text-muted">CPF:</label>
-                    <div>{{ usuario.perfil.cpf }}</div>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <label class="text-muted">E-mail:</label>
-                    <div>{{ usuario.email }}</div>
+
+                <div class="info-card mb-3">
+                    <div class="info-card-header">
+                        <i class="fas fa-envelope text-primary"></i>
+                        <span>E-mail</span>
+                    </div>
+                    <div class="info-card-content">
+                        {{ usuario.email }}
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Endereço -->
-        <div class="section mb-5">
-            <div class="section-header d-flex justify-content-between border-bottom mb-4">
-                <h2 class="h4">Endereço de Entrega</h2>
-                <a href="{% url 'perfil:criar' %}" class="link-primary">Editar</a>
+        <div class="section mb-4">
+            <div class="section-header d-flex justify-content-between align-items-center border-bottom mb-3">
+                <h2 class="h4 mb-0">Endereço de Entrega</h2>
+                <a href="{% url 'perfil:criar' %}" class="btn btn-warning btn-sm">
+                    <i class="fas fa-edit me-1"></i>Alterar
+                </a>
             </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="text-muted">Endereço:</label>
-                    <div>{{ usuario.perfil.endereco }}, {{ usuario.perfil.numero }}</div>
-                    {% if usuario.perfil.complemento %}
-                        <div>{{ usuario.perfil.complemento }}</div>
-                    {% endif %}
+            
+            <div class="address-confirmation-box p-3 mb-3">
+                <div class="alert-banner mb-3">
+                    <i class="fas fa-info-circle text-primary me-2"></i>
+                    <strong>Confirme o endereço de entrega:</strong>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="text-muted">Localização:</label>
-                    <div>{{ usuario.perfil.bairro }}</div>
-                    <div>{{ usuario.perfil.cidade }} - {{ usuario.perfil.estado }}</div>
-                    <div>CEP: {{ usuario.perfil.cep }}</div>
+                
+                <div class="address-details">
+                    <div class="address-card mb-3">
+                        <div class="address-line">
+                            <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                            <strong>{{ usuario.perfil.endereco }}, {{ usuario.perfil.numero }}</strong>
+                        </div>
+                        {% if usuario.perfil.complemento %}
+                        <div class="address-complement">
+                            <i class="fas fa-info-circle text-muted me-2"></i>
+                            {{ usuario.perfil.complemento }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="address-card mb-3">
+                        <div class="location-details">
+                            <div class="mb-1">
+                                <i class="fas fa-map text-muted me-2"></i>
+                                {{ usuario.perfil.bairro }}
+                            </div>
+                            <div class="mb-1">
+                                <i class="fas fa-city text-muted me-2"></i>
+                                {{ usuario.perfil.cidade }} - {{ usuario.perfil.estado }}
+                            </div>
+                            <div>
+                                <i class="fas fa-envelope text-muted me-2"></i>
+                                CEP: {{ usuario.perfil.cep }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="verification-card">
+                        <div class="verification-title mb-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <strong>Confira:</strong>
+                        </div>
+                        <ul class="verification-list">
+                            <li>Número está correto?</li>
+                            <li>CEP está atualizado?</li>
+                            <li>Complemento está completo?</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Resumo -->
+        <!-- Resumo e Pagamento -->
         <div class="section">
-            <div class="section-header border-bottom mb-4">
+            <div class="section-header border-bottom mb-3">
                 <h2 class="h4">Resumo do Pedido</h2>
             </div>
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <div class="mb-2">
-                        <span class="text-muted">Subtotal:</span>
-                        <strong class="ms-2">{{ carrinho|cart_totals|formata_preco }}</strong>
-                    </div>
-                    <div class="mb-2">
-                        <span class="text-muted">Frete:</span>
-                        <span class="ms-2 text-success">Grátis</span>
-                    </div>
-                    <div>
-                        <span class="text-muted">Total:</span>
-                        <strong class="ms-2">{{ carrinho|cart_totals|formata_preco }}</strong>
-                    </div>
+            <div class="order-summary mb-4">
+                <div class="summary-item">
+                    <span class="text-muted">Subtotal:</span>
+                    <strong>{{ carrinho|cart_totals|formata_preco }}</strong>
                 </div>
-                {% comment %} <div class="col-md-6 text-end">
-                    <a href="{% url 'pedido:salvarpedido' %}" class="btn btn-primary btn-lg">
-                        Finalizar Pedido
+                <div class="summary-item">
+                    <span class="text-muted">Frete:</span>
+                    <span class="text-success">Grátis</span>
+                </div>
+                <div class="summary-item total">
+                    <span class="text-muted">Total:</span>
+                    <strong>{{ carrinho|cart_totals|formata_preco }}</strong>
+                </div>
+            </div>
+            
+            <div class="payment-options">
+                <h3 class="h5 mb-4 text-center">Escolha como pagar:</h3>
+                <div class="payment-buttons">
+                    <a href="{% url 'produto:gerar_pagamento' %}" class="btn btn-primary payment-btn">
+                        <div class="payment-btn-content">
+                            <i class="fas fa-credit-card payment-icon"></i>
+                            <div class="payment-text">
+                                <span class="payment-method">Mercado Pago</span>
+                                <span class="payment-description">Pague com cartão ou PIX</span>
+                            </div>
+                        </div>
                     </a>
-                </div> {% endcomment %}
-                <div class="col-md-6 text-end">
-                    <a href="{% url 'produto:gerar_pagamento' %}" class="btn btn-primary btn-lg">
-                        Pagar com Mercado Pago
+                    <a href="{% url 'pedido:pagamento_whatsapp' %}" class="btn btn-success payment-btn">
+                        <div class="payment-btn-content">
+                            <i class="fab fa-whatsapp payment-icon"></i>
+                            <div class="payment-text">
+                                <span class="payment-method">WhatsApp</span>
+                                <span class="payment-description">Combine o pagamento pelo chat</span>
+                            </div>
+                        </div>
                     </a>
                 </div>
             </div>
@@ -110,20 +173,228 @@
 </div>
 
 <style>
+/* Base styles */
 .checkout-container {
     max-width: 1000px;
     margin: 0 auto;
     box-shadow: 0 0 15px rgba(0,0,0,0.05);
 }
-.section-header {
-    padding-bottom: 1rem;
+
+/* Mobile-first styles */
+.mobile-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
 }
-label {
-    font-size: 0.875rem;
+
+/* Personal Info Cards */
+.personal-info-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.info-card {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+}
+
+.info-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6c757d;
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+}
+
+.info-card-content {
+    font-weight: 500;
+    word-break: break-word;
+}
+
+/* Address styles */
+.address-confirmation-box {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.alert-banner {
+    color: #084298;
+    background-color: #cfe2ff;
+    border: 1px solid #b6d4fe;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.address-card {
+    background-color: white;
+    border-radius: 6px;
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+}
+
+.address-line, .address-complement {
+    margin-bottom: 0.5rem;
+}
+
+.verification-card {
+    background-color: white;
+    border-radius: 6px;
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+}
+
+.verification-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+.verification-list li {
+    padding: 0.3rem 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+}
+
+.verification-list li:before {
+    content: "□";
+    margin-right: 0.5rem;
+    color: #0d6efd;
+}
+
+/* Order summary */
+.order-summary {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 0;
+}
+
+.summary-item.total {
+    border-top: 1px solid #dee2e6;
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+    font-size: 1.1rem;
+}
+
+/* Payment styles */
+.payment-options {
+    margin-top: 2rem;
+}
+
+.payment-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.payment-btn {
+    width: 100%;
+    padding: 1.25rem;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    text-align: left;
+    border: none;
+}
+
+.payment-btn-content {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.payment-icon {
+    font-size: 1.5rem;
+}
+
+.payment-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.payment-method {
+    font-weight: 600;
+    font-size: 1.1rem;
     margin-bottom: 0.25rem;
 }
-.btn-primary {
-    padding: 0.75rem 2rem;
+
+.payment-description {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+/* Estilo específico para cada botão */
+.btn-primary.payment-btn {
+    background-color: #0d6efd;
+    box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
+}
+
+.btn-primary.payment-btn:hover {
+    background-color: #0b5ed7;
+    transform: translateY(-2px);
+}
+
+.btn-success.payment-btn {
+    background-color: #25D366;
+    box-shadow: 0 2px 4px rgba(37, 211, 102, 0.2);
+}
+
+.btn-success.payment-btn:hover {
+    background-color: #128C7E;
+    transform: translateY(-2px);
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+    .personal-info-cards {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .address-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .verification-card {
+        grid-column: 1 / -1;
+    }
+    
+    .order-summary {
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .payment-buttons {
+        gap: 1.5rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .personal-info-cards {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .mobile-title {
+        font-size: 2rem;
+    }
 }
 </style>
 {% endblock %}

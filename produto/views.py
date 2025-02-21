@@ -10,6 +10,7 @@ from .forms import ContatoForm, FormularioComentario
 import mercadopago
 import json
 from django.conf import settings
+from django.core.mail import send_mail
 
 
 def about(request):
@@ -17,39 +18,6 @@ def about(request):
         request,
         'produto/about.html',
     )
-
-class ListaPostagensView(ListView):
-    model = Postagem
-    template_name = 'produto/blog.html'
-    context_object_name = 'postagens'
-    paginate_by = 10
-
-    def get_context_data(self, **kwargs):
-        contexto = super().get_context_data(**kwargs)
-        contexto['categorias'] = Category.objects.annotate(
-            contagem_posts=Count('postagem')
-        )
-        contexto['posts_recentes'] = Postagem.objects.order_by('-data_criacao')[:3]
-        return contexto
-
-class DetalhesPostagemView(DetailView):
-    model = Postagem
-    template_name = 'produto/blog-single.html'
-    context_object_name = 'postagem'
-
-    def get_context_data(self, **kwargs):
-        contexto = super().get_context_data(**kwargs)
-        contexto['posts_recentes'] = Postagem.objects.exclude(
-            id=self.object.id
-        ).order_by('-data_criacao')[:3]
-        contexto['categorias'] = Category.objects.annotate(
-            contagem_posts=Count('postagem')
-        )
-        return contexto
-
-
-from django.shortcuts import render
-from .models import Produto, Category
 
 def index(request):
     # Obtém apenas os 4 primeiros produtos
@@ -83,6 +51,35 @@ def index(request):
     return render(request, 'produto/index.html', context)
 
 
+class ListaPostagensView(ListView):
+    model = Postagem
+    template_name = 'produto/blog.html'
+    context_object_name = 'postagens'
+    paginate_by = 10
+
+    def get_context_data(self, **kwargs):
+        contexto = super().get_context_data(**kwargs)
+        contexto['categorias'] = Category.objects.annotate(
+            contagem_posts=Count('postagem')
+        )
+        contexto['posts_recentes'] = Postagem.objects.order_by('-data_criacao')[:3]
+        return contexto
+
+class DetalhesPostagemView(DetailView):
+    model = Postagem
+    template_name = 'produto/blog-single.html'
+    context_object_name = 'postagem'
+
+    def get_context_data(self, **kwargs):
+        contexto = super().get_context_data(**kwargs)
+        contexto['posts_recentes'] = Postagem.objects.exclude(
+            id=self.object.id
+        ).order_by('-data_criacao')[:3]
+        contexto['categorias'] = Category.objects.annotate(
+            contagem_posts=Count('postagem')
+        )
+        return contexto
+
 def troca(request):
     return render(
         request,
@@ -114,6 +111,19 @@ def contact(request):
         form = ContatoForm(request.POST)
         if form.is_valid():
             form.save()
+            send_mail(
+                subject='Nova Avaliação Recebida - Vivan Calçados',
+                message=(
+                    'Olá,\n\n'
+                    'Sua loja, Vivan Calçados, acaba de receber uma nova avaliação de um cliente! '
+                    'Confira o feedback acessando o painel de administração do site.\n\n'
+                    'Se precisar de mais informações, entre em contato com o suporte.\n\n'
+                    'Atenciosamente,\n'
+                    'Equipe Vivan Calçados'
+                ),
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[settings.DEFAULT_FROM_EMAIL]
+            )
             messages.success(request, 'Mensagem enviada com sucesso!')
             return redirect('produto:contact')
     else:
@@ -169,6 +179,9 @@ def adicionar_comentario(request, slug):
     return redirect('produto:detalhes_post', slug=postagem.slug)
 
 
+from django.views.generic import ListView
+from .models import Produto, Category, SubCategory
+
 class ListaProdutos(ListView):
     model = Produto
     template_name = 'produto/shop.html'
@@ -183,9 +196,11 @@ class ListaProdutos(ListView):
         category_id = self.request.GET.get('category')
         subcategory_id = self.request.GET.get('subcategory')
 
+        # Filtra por categoria
         if category_id:
             queryset = queryset.filter(category_id=category_id)
         
+        # Filtra por subcategoria, se houver
         if subcategory_id:
             queryset = queryset.filter(subcategory_id=subcategory_id)
 
@@ -394,7 +409,7 @@ class ResumoDaCompra(View):
         if not self.request.user.is_authenticated:
             return redirect('perfil:criar')
 
-        perfil = Perfil.objects.filter(usuario=self.request.user).exists()
+        perfil = Perfil.objects.filter(usuario=self.request.user).exists()        
 
         if not perfil:
             messages.error(

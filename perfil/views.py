@@ -6,6 +6,8 @@ from django.contrib.auth import authenticate, login, logout
 import copy
 from . import models
 from . import forms
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 class BasePerfil(View):
@@ -122,6 +124,24 @@ class Criar(BasePerfil):
         self.request.session['carrinho'] = self.carrinho
         self.request.session.save()
 
+        email_usuario = self.request.user.email
+
+                # Enviando e-mail de confirmação
+        send_mail(
+            subject='Cadastro Realizado com Sucesso - Vivan Calçados',
+            message=(
+                f'Olá, {self.request.user.first_name}!\n\n'
+                'Seu cadastro na Vivan Calçados foi concluído com sucesso! 🎉\n\n'
+                'Agora você pode acessar sua conta, acompanhar seus pedidos e aproveitar ofertas exclusivas.\n\n'
+                'Se precisar de ajuda, entre em contato com nosso suporte.\n\n'
+                'Seja bem-vindo(a)!\n\n'
+                'Atenciosamente,\n'
+                'Equipe Vivan Calçados'
+            ),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[email_usuario],
+        )
+
         messages.success(
             self.request,
             'Seu cadastro foi criado ou atualizado com sucesso.'
@@ -139,6 +159,8 @@ class Atualizar(View):
     def get(self, *args, **kwargs):
         if self.request.user.is_authenticated:
             self.template_name = 'perfil/atualizar.html'
+
+
 
 class Login(View):
     def post(self, *args, **kwargs):

@@ -15,6 +15,7 @@ class Perfil(models.Model):
     endereco = models.CharField(max_length=50)
     numero = models.CharField(max_length=5)
     complemento = models.CharField(max_length=30)
+    telefone = models.CharField(max_length=15, blank=True, null=True) #novo
     bairro = models.CharField(max_length=30)
     cep = models.CharField(max_length=8)
     cidade = models.CharField(max_length=30)

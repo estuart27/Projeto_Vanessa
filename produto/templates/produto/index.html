@@ -52,8 +52,8 @@
 					<div class="col-md-7 py-3 py-md-5 ftco-animate">
 						<div class="text text-2 py-md-5">
 							<h2 class="mb-4">Encontre o par perfeito para cada ocasião na Vivan Calcados</h2>
-							<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right at the coast of the Semantics, a large language ocean.</p>
-							<p><a href="#" class="btn btn-white px-4 py-3">Shop now</a></p>
+							<p>Descubra o calçado ideal para cada momento! Conforto, estilo e qualidade se encontram na Vivan Calçados para dar aquele toque especial ao seu look. Escolha o seu favorito e sinta a diferença a cada passo!</p>
+							{% comment %} <p><a href="#" class="btn btn-white px-4 py-3">Shop now</a></p> {% endcomment %}
 						</div>
 					</div>
 				</div>
@@ -64,9 +64,9 @@
 			<div class="container">
 				<div class="row justify-content-center mb-3 pb-3">
 				  <div class="col-md-12 heading-section text-center ftco-animate">
-					<h2 class="mb-4">Best Sellers</h2>
-					<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia</p>
-				  </div>
+					<h2 class="mb-4">Explore Nossos Modelos</h2>
+					<p>Confira os modelos disponíveis e encontre o calçado ideal para você. Temos opções para todas as ocasiões – escolha o seu e faça seu pedido agora!</p>
+				</div>
 				</div>   		
 			</div>
 			<div class="container">
@@ -122,141 +122,191 @@
 						</div>
 					{% endif %}
 				</div>
-			</div>
-	</section>
-	
-	<section class="ftco-section ftco-counter img" id="section-counter" style="background-image: url({% static 'images/bg_4.jpg' %});">
-		<div class="container">
-			<div class="row justify-content-center py-5">
-				<div class="col-md-10">
-					<div class="row">
-						<div class="col-md-3 d-flex justify-content-center counter-wrap ftco-animate">
-							<div class="block-18 text-center">
-								<div class="text">
-									<strong class="number" data-number="10000">0</strong>
-									<span>Happy Customers</span>
-								</div>
-							</div>
-						</div>
-						<div class="col-md-3 d-flex justify-content-center counter-wrap ftco-animate">
-							<div class="block-18 text-center">
-								<div class="text">
-									<strong class="number" data-number="100">0</strong>
-									<span>Branches</span>
-								</div>
-							</div>
-						</div>
-						<div class="col-md-3 d-flex justify-content-center counter-wrap ftco-animate">
-							<div class="block-18 text-center">
-								<div class="text">
-									<strong class="number" data-number="1000">0</strong>
-									<span>Partner</span>
-								</div>
-							</div>
-						</div>
-						<div class="col-md-3 d-flex justify-content-center counter-wrap ftco-animate">
-							<div class="block-18 text-center">
-								<div class="text">
-									<strong class="number" data-number="100">0</strong>
-									<span>Awards</span>
-								</div>
-							</div>
-						</div>
-					</div>
+				<div class="text-center mt-4">
+					<a href="{% url 'produto:lista' %}"  class="btn btn-primary py-2 px-4">
+						Ver mais opções <i class="ion-ios-arrow-round-forward ml-2"></i>
+					</a>
 				</div>
 			</div>
-		</div>
 	</section>
+	<section class="ftco-section ftco-counter" style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url({% static 'images/calcado.jpg' %});">
+		<div class="container py-5">
+		  <div class="row justify-content-center">
+			<div class="col-md-10">
+			  <div class="row text-center">
+				<div class="col-md-3 mb-4">
+				  <div class="stat-block p-4 bg-white rounded shadow">
+					<div class="stat-content">
+					  <strong class="number display-4" data-number="100">0</strong>
+					  <p class="text-muted">Modelos Disponíveis</p>
+					</div>
+				  </div>
+				</div>
+				<div class="col-md-3 mb-4">
+				  <div class="stat-block p-4 bg-white rounded shadow">
+					<div class="stat-content">
+					  <strong class="number display-4" data-number="50">0</strong>
+					  <p class="text-muted">Marcas Exclusivas</p>
+					</div>
+				  </div>
+				</div>
+				<div class="col-md-3 mb-4">
+				  <div class="stat-block p-4 bg-white rounded shadow">
+					<div class="stat-content">
+					  <strong class="number display-4" data-number="2">0</strong>
+					  <p class="text-muted">Anos no Mercado</p>
+					</div>
+				  </div>
+				</div>
+				<div class="col-md-3 mb-4">
+				  <div class="stat-block p-4 bg-white rounded shadow">
+					<div class="stat-content">
+					  <strong class="number display-4" data-number="100">0</strong>
+					  <p class="text-muted">Clientes Satisfeitos</p>
+					</div>
+				  </div>
+				</div>
+			  </div>
+			</div>
+		  </div>
+		</div>
+	  </section>
+	  
+	  <style>
+	  .ftco-counter {
+		color: #fff;
+		background-size: cover;
+		background-position: center;
+	  }
+	  
+	  .stat-block {
+		transition: transform 0.3s ease;
+	  }
+	  
+	  .stat-block:hover {
+		transform: translateY(-5px);
+	  }
+	  
+	  .number {
+		color: #333;
+		font-weight: bold;
+	  }
+	  </style>
+	  
+	  <script>
+	  document.addEventListener('DOMContentLoaded', function() {
+		const counters = document.querySelectorAll('.number');
+		
+		counters.forEach(counter => {
+		  const target = parseInt(counter.getAttribute('data-number'));
+		  let count = 0;
+		  const speed = 2000 / target;
+		  
+		  const updateCount = () => {
+			if(count < target) {
+			  count++;
+			  counter.textContent = count;
+			  setTimeout(updateCount, speed);
+			}
+		  };
+		  
+		  updateCount();
+		});
+	  });
+	  </script>
 	
 	<section class="ftco-section testimony-section">
 		<div class="container">
-			<div class="row justify-content-center mb-5 pb-3">
-				<div class="col-md-7 heading-section ftco-animate">
-					<h2 class="mb-4">Our satisfied customer says</h2>
-					<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in</p>
-				</div>
+		  <div class="row justify-content-center mb-5 pb-3">
+			<div class="col-md-7 heading-section ftco-animate">
+			  <h2 class="mb-4">Nossos Valores</h2>
+			  <p>Levamos estilo, conforto e preço justo até você! Trabalhamos com calçados de marcas renomadas, oferecendo
+				tanto produtos originais quanto de segunda linha, sempre com qualidade garantida. Nosso compromisso é
+				proporcionar uma compra fácil, segura e satisfatória. Seu conforto é a nossa prioridade! </p>
 			</div>
-			<div class="row ftco-animate">
-				<div class="col-md-12">
-					<div class="carousel-testimony owl-carousel">
-						<div class="item">
-							<div class="testimony-wrap p-4 pb-5">
-								<div class="user-img mb-5" style="background-image: url({% static 'images/person_1.jpg' %})">
-									<span class="quote d-flex align-items-center justify-content-center">
-										<i class="icon-quote-left"></i>
-									</span>
-								</div>
-								<div class="text">
-									<p class="mb-5 pl-4 line">Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p>
-									<p class="name">Garreth Smith</p>
-									<span class="position">Marketing Manager</span>
-								</div>
-							</div>
-						</div>
-						<div class="item">
-							<div class="testimony-wrap p-4 pb-5">
-								<div class="user-img mb-5" style="background-image: url({% static 'images/person_2.jpg' %})">
-									<span class="quote d-flex align-items-center justify-content-center">
-										<i class="icon-quote-left"></i>
-									</span>
-								</div>
-								<div class="text">
-									<p class="mb-5 pl-4 line">Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p>
-									<p class="name">Garreth Smith</p>
-									<span class="position">Interface Designer</span>
-								</div>
-							</div>
-						</div>
-						<div class="item">
-							<div class="testimony-wrap p-4 pb-5">
-								<div class="user-img mb-5" style="background-image: url({% static 'images/person_3.jpg' %})">
-									<span class="quote d-flex align-items-center justify-content-center">
-										<i class="icon-quote-left"></i>
-									</span>
-								</div>
-								<div class="text">
-									<p class="mb-5 pl-4 line">Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p>
-									<p class="name">Garreth Smith</p>
-									<span class="position">UI Designer</span>
-								</div>
-							</div>
-						</div>
-						<div class="item">
-							<div class="testimony-wrap p-4 pb-5">
-								<div class="user-img mb-5" style="background-image: url({% static 'images/person_1.jpg' %})">
-									<span class="quote d-flex align-items-center justify-content-center">
-										<i class="icon-quote-left"></i>
-									</span>
-								</div>
-								<div class="text">
-									<p class="mb-5 pl-4 line">Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p>
-									<p class="name">Garreth Smith</p>
-									<span class="position">Web Developer</span>
-								</div>
-							</div>
-						</div>
-						<div class="item">
-							<div class="testimony-wrap p-4 pb-5">
-								<div class="user-img mb-5" style="background-image: url({% static 'images/person_1.jpg' %})">
-									<span class="quote d-flex align-items-center justify-content-center">
-										<i class="icon-quote-left"></i>
-									</span>
-								</div>
-								<div class="text">
-									<p class="mb-5 pl-4 line">Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p>
-									<p class="name">Garreth Smith</p>
-									<span class="position">System Analyst</span>
-								</div>
-							</div>
-						</div>
+		  </div>
+		  <div class="row ftco-animate">
+			<div class="col-md-12">
+			  <div class="carousel-testimony owl-carousel">
+				<div class="item">
+				  <div class="testimony-wrap p-4 pb-5">
+					<div class="user-img mb-5 d-flex align-items-center justify-content-center">
+					  <span class="quote d-flex align-items-center justify-content-center">
+						<i class="fa-solid fa-award fa-3x"></i>
+					  </span>
 					</div>
+					<div class="text">
+					  <p class="mb-5 pl-4 line">Oferecemos produtos de qualidades com ótimo custo-benefício.
+					  <p>
+					  <p class="name">Qualidade Garantida</p>
+					  <span class="position">EXCLUSIVIDADE EM CADA PASSO</span>
+					</div>
+				  </div>
 				</div>
+				<div class="item">
+				  <div class="testimony-wrap p-4 pb-5">
+					<div class="user-img mb-5 d-flex align-items-center justify-content-center">
+					  <span class="quote d-flex align-items-center justify-content-center">
+						<i class="fa-solid fa-shoe-prints fa-3x"></i>
+					  </span>
+					</div>
+					<div class="text">
+					  <p class="mb-5 pl-4 line">Sapatos para todas as ocasiões, sem abrir mão do conforto.</p>
+					  <p class="name">Conforto e Estilo</p>
+					  <span class="position">TENDÊNCIAS SEMPRE ATUALIZADAS</span>
+					</div>
+				  </div>
+				</div>
+				<div class="item">
+				  <div class="testimony-wrap p-4 pb-5">
+					<div class="user-img mb-5 d-flex align-items-center justify-content-center">
+					  <span class="quote d-flex align-items-center justify-content-center">
+						<i class="fa-solid fa-tags fa-3x"></i> <!-- Preço Justo -->
+					  </span>
+					</div>
+					<div class="text">
+					  <p class="mb-5 pl-4 line">Ofertas imperdíveis e condições acessíveis para todos.</p>
+					  <p class="name">Preço Justo</p>
+					  <span class="position">O MELHOR PREÇO, SEMPRE!</span>
+					</div>
+				  </div>
+				</div>
+				<div class="item">
+				  <div class="testimony-wrap p-4 pb-5">
+					<div class="user-img mb-5 d-flex align-items-center justify-content-center">
+					  <span class="quote d-flex align-items-center justify-content-center">
+						<i class="fa-solid fa-truck fa-3x"></i> <!-- Rapidez na Entrega -->
+					  </span>
+					</div>
+					<div class="text">
+					  <p class="mb-5 pl-4 line">Enviamos seu pedido com segurança e agilidade.</p>
+					  <p class="name">Rapidez na Entrega</p>
+					  <span class="position">FRETE RÁPIDO</span>
+					</div>
+				  </div>
+				</div>
+				<div class="item">
+				  <div class="testimony-wrap p-4 pb-5">
+					<div class="user-img mb-5 d-flex align-items-center justify-content-center">
+					  <span class="quote d-flex align-items-center justify-content-center">
+						<i class="fa-solid fa-headset fa-3x"></i> <!-- Atendimento Especializado -->
+					  </span>
+					</div>
+					<div class="text">
+					  <p class="mb-5 pl-4 line">Suporte pronto para te ajudar em cada etapa da compra.</p>
+					  <p class="name">Atendimento Especializado</p>
+					  <span class="position">ATENDIMENTO ACERTIVO</span>
+					</div>
+				  </div>
+				</div>
+			  </div>
 			</div>
+		  </div>
 		</div>
-	</section>
+	  </section>
 	<hr>
 	
-	<section class="ftco-section-parallax">
+	{% comment %} <section class="ftco-section-parallax">
 		<div class="parallax-img d-flex align-items-center">
 			<div class="container">
 				<div class="row d-flex justify-content-center py-5">
@@ -276,7 +326,7 @@
 				</div>
 			</div>
 		</div>
-	</section>
+	</section> {% endcomment %}
 	{% include 'parciais/_footer.html' %}
     <!-- END nav -->
     
