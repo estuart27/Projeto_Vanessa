@@ -10,7 +10,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'ct-w9@c7^-m#2(^b+1^n@#o=za2h&x#=w^3zvl^)ph^pda&196'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -146,10 +146,12 @@ MERCADO_PAGO_SANDBOX = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587  # porta padrão para TLS
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = os.getenv('EMAIL_PORT')  # porta padrão para TLS
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'silvestreestuart@gmail.com' #Email da Usuario
-EMAIL_HOST_PASSWORD = 'zjlq aaue smer dbot'
-DEFAULT_FROM_EMAIL = 'silvestreestuart@gmail.com'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+
+
 

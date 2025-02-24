@@ -1,19 +1,6 @@
--- Taxa de entrega 
--- Pagina responsiva 
-
-- Template quando vai salvar os valor , fica um valor imcompleto
-
-- Aviso de pedido novo 
-aviso de erro 
+1 - Taxa de entrega 
 
 
-TRATAR POSSIVEIS ERROS 
 
-
-5031 4332 1540 6351
-
-12345678909 
-
-estuartmatheus11@gmail.com
-
-vivan.calcados
+3 - Pagina responsiva 
+4 - Template quando vai salvar os valor , fica um valor imcompleto

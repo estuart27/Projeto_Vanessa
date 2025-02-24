@@ -1,7 +1,6 @@
 {% load static %}
 {% load omfilters %}
 
-
 <body class="goto-here">
     <div class="py-1 bg-black">
     <div class="container">
@@ -17,7 +16,7 @@
                         <span class="text">calçadosvivan@gmail.com </span>
                     </div>
                     <div class="col-md-5 pr-4 d-flex topper align-items-center text-lg-right">
-                        <span class="text">3-5 Business days delivery &amp; Free Returns</span>
+                        {% comment %} <span class="text">3-5 Business days delivery &amp; Free Returns</span> {% endcomment %}
                     </div>
                 </div>
             </div>
@@ -25,34 +24,54 @@
       </div>
 </div>
 <nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
-    <div class="container">
-      <a class="navbar-brand" href="{% url 'produto:lista' %}">Vivan Calcados</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="oi oi-menu"></span> Menu
-      </button>
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'produto:lista' %}">Vivan Calcados</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="oi oi-menu"></span> Menu
+    </button>
 
       <div class="collapse navbar-collapse" id="ftco-nav">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item"><a href="{% url 'produto:index' %}" class="nav-link">Home</a></li>
           <li class="nav-item"><a href="{% url 'produto:lista' %}" class="nav-link">Shop</a></li>
+          
+          {% comment %} Mostra as primeiras 4 categorias individualmente {% endcomment %}
           {% for category in categories %}
-          {% if forloop.counter <= 4 %}
-            <li class="nav-item dropdown active">
-              <a class="nav-link dropdown-toggle" href="{% url 'produto:lista' %}?category={{ category.id }}" id="dropdown04" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ category.name }}</a>
-              <div class="dropdown-menu" aria-labelledby="dropdown04">
-                {% for subcategory in category.subcategories.all %}
-                  <a class="dropdown-item" href="{% url 'produto:lista' %}?category={{ category.id }}&subcategory={{ subcategory.id }}">{{ subcategory.name }}</a>
-                {% endfor %}
-              </div>
-            </li>
-          {% endif %}
-        {% endfor %}
-        
-
+            {% if forloop.counter <= 4 %}
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="category-dropdown-{{ category.id }}" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ category.name }}</a>
+                <div class="dropdown-menu" aria-labelledby="category-dropdown-{{ category.id }}">
+                  {% for subcategory in category.subcategories.all %}
+                    <a class="dropdown-item" href="{% url 'produto:lista' %}?category={{ category.id }}&subcategory={{ subcategory.id }}">{{ subcategory.name }}</a>
+                  {% endfor %}
+                </div>
+              </li>
+            {% endif %}
+          {% endfor %}
+          
+          {% comment %} Dropdown de "Mais Categorias" para mostrar as categorias restantes {% endcomment %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="more-categories-dropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Mais Categorias</a>
+            <div class="dropdown-menu mega-menu" aria-labelledby="more-categories-dropdown">
+              {% for category in categories %}
+                {% if forloop.counter > 4 %}
+                  <div class="submenu-section">
+                    <h6 class="dropdown-header">{{ category.name }}</h6>
+                    {% for subcategory in category.subcategories.all %}
+                      <a class="dropdown-item pl-4" href="{% url 'produto:lista' %}?category={{ category.id }}&subcategory={{ subcategory.id }}">{{ subcategory.name }}</a>
+                    {% endfor %}
+                    {% if not forloop.last and forloop.counter > 4 %}
+                      <div class="dropdown-divider"></div>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </li>
         
           {% if request.user.is_authenticated %}
-          <li class="nav-item dropdown active">
-            <a class="nav-link dropdown-toggle" href="#" id="dropdown04" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Mais</a>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="dropdown04" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Mais</a>
             <div class="dropdown-menu" aria-labelledby="dropdown04">
               <a class="dropdown-item" href="{% url 'pedido:lista' %}">Meus pedidos</a>
               <a class="dropdown-item" href="{% url 'perfil:criar' %}">Atualizar meus dados</a>
@@ -63,17 +82,40 @@
             </div>
           </li>
           {% if request.session.carrinho %}
-          <li class="nav-item cta cta-colored"><a href="{% url 'produto:carrinho' %}" class="nav-link"><span class="icon-shopping_cart"></span>[{{ request.session.carrinho|cart_total_qtd }}x]</a></li>
+          <li class="nav-item cta cta-colored"><a href="{% url 'produto:carrinho' %}" class="nav-link"><span class="icon-shopping_cart"> carrinho </span>[{{ request.session.carrinho|cart_total_qtd }}x]</a></li>
           {% endif %}
          {% else %}
          <li class="nav-item"><a href="{% url 'perfil:criar' %}" class="nav-link">Logar</a></li>
          <li class="nav-item"><a href="{% url 'perfil:criar' %}" class="nav-link">Criar Conta</a></li>
-
          {% endif %}
-         
-
-
         </ul>
       </div>
     </div>
   </nav>
+
+<!-- Make sure you have Bootstrap JS and its dependencies loaded -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<!-- CSS adicional para o mega menu -->
+<style>
+  .mega-menu {
+    padding: 1rem;
+    min-width: 220px;
+  }
+  
+  .dropdown-header {
+    font-weight: bold;
+    color: #000;
+    padding-left: 0.5rem;
+  }
+  
+  .submenu-section {
+    margin-bottom: 0.5rem;
+  }
+  
+  .pl-4 {
+    padding-left: 1.5rem !important;
+  }
+</style>

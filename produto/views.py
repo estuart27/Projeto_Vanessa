@@ -19,36 +19,41 @@ def about(request):
         'produto/about.html',
     )
 
+#Tratado o erro de página não encontrada
 def index(request):
-    # Obtém apenas os 4 primeiros produtos
-    # queryset = Produto.objects.all()[:4]
-    queryset = Produto.objects.order_by('?')[:4]
+    try:
+        queryset = Produto.objects.order_by('?')[:4]
+        categories = Category.objects.prefetch_related('subcategories').all()
+        
+        # Calcula o desconto para cada produto
+        produtos_com_desconto = []
+        for produto in queryset:
+            if produto.preco_marketing_promocional:
+                desconto = ((produto.preco_marketing - produto.preco_marketing_promocional) / produto.preco_marketing) * 100
+                desconto = int(round(desconto, 0))
+            else:
+                desconto = 0
 
-    # Obtém todas as categorias
-    categories = Category.objects.prefetch_related('subcategories').all()
+            produtos_com_desconto.append({
+                'produto': produto,
+                'desconto': desconto,
+            })
 
-    # Calcula o desconto para cada produto
-    produtos_com_desconto = []
-    for produto in queryset:
-        if produto.preco_marketing_promocional:
-            desconto = ((produto.preco_marketing - produto.preco_marketing_promocional) / produto.preco_marketing) * 100
-            desconto = int(round(desconto, 0))
-        else:
-            desconto = 0
+        context = {
+            'produtos': queryset,
+            'categories': categories,
+            'produtos_com_desconto': produtos_com_desconto,
+        }
 
-        produtos_com_desconto.append({
-            'produto': produto,
-            'desconto': desconto,
-        })
-
-    # Passa os dados para o template
-    context = {
-        'produtos': queryset,
-        'categories': categories,
-        'produtos_com_desconto': produtos_com_desconto,
-    }
-
-    return render(request, 'produto/index.html', context)
+        return render(request, 'produto/index.html', context)
+    except Exception as e:
+        messages.error(request, "Ocorreu um erro ao carregar a página inicial. Por favor, tente novamente mais tarde.")
+        # Log the error for admin
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Erro na página inicial: {str(e)}")
+        # Return a simple page instead of the full index
+        return render(request, 'produto/error.html', {'message': 'Erro ao carregar produtos'})
 
 
 class ListaPostagensView(ListView):
@@ -99,36 +104,43 @@ def politica(request):
     )
 
 
-def checkout(request):
-    return render(
-        request,
-        'produto/checkout.html',
-    )
-
-
 def contact(request):
     if request.method == 'POST':
         form = ContatoForm(request.POST)
         if form.is_valid():
-            form.save()
-            send_mail(
-                subject='Nova Avaliação Recebida - Vivan Calçados',
-                message=(
-                    'Olá,\n\n'
-                    'Sua loja, Vivan Calçados, acaba de receber uma nova avaliação de um cliente! '
-                    'Confira o feedback acessando o painel de administração do site.\n\n'
-                    'Se precisar de mais informações, entre em contato com o suporte.\n\n'
-                    'Atenciosamente,\n'
-                    'Equipe Vivan Calçados'
-                ),
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[settings.DEFAULT_FROM_EMAIL]
-            )
-            messages.success(request, 'Mensagem enviada com sucesso!')
-            return redirect('produto:contact')
+            try:
+                form.save()
+                try:
+                    send_mail(
+                        subject='Nova Avaliação Recebida - Vivan Calçados',
+                        message=(
+                            'Olá,\n\n'
+                            'Sua loja, Vivan Calçados, acaba de receber uma nova avaliação de um cliente! '
+                            'Confira o feedback acessando o painel de administração do site.\n\n'
+                            'Se precisar de mais informações, entre em contato com o suporte.\n\n'
+                            'Atenciosamente,\n'
+                            'Equipe Vivan Calçados'
+                        ),
+                        from_email=settings.EMAIL_HOST_USER,
+                        recipient_list=[settings.DEFAULT_FROM_EMAIL]
+                    )
+                except Exception as email_error:
+                    # Log email error but don't show to user since the form was saved
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Erro ao enviar email: {str(email_error)}")
+                    
+                messages.success(request, 'Mensagem enviada com sucesso!')
+                return redirect('produto:contact')
+            except Exception as e:
+                messages.error(request, 'Erro ao salvar mensagem. Por favor, tente novamente.')
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Erro ao salvar formulário de contato: {str(e)}")
     else:
         form = ContatoForm()
-    return render(request, 'produto/contact.html',{'form': form})  # Corrigindo o nome do arquivo
+    return render(request, 'produto/contact.html', {'form': form})
+
 
 
 class ListaPostagensView(ListView):
@@ -179,14 +191,11 @@ def adicionar_comentario(request, slug):
     return redirect('produto:detalhes_post', slug=postagem.slug)
 
 
-from django.views.generic import ListView
-from .models import Produto, Category, SubCategory
-
 class ListaProdutos(ListView):
     model = Produto
     template_name = 'produto/shop.html'
     context_object_name = 'produtos'
-    paginate_by = 17
+    paginate_by = 15
     ordering = ['-id']
 
     def get_queryset(self):
@@ -292,77 +301,91 @@ class AdicionarAoCarrinho(View):
             'HTTP_REFERER',
             reverse('produto:lista')
         )
-        variacao_id = self.request.GET.get('vid')
-        quantidade = int(self.request.GET.get('quantidade', 1))  # Captura a quantidade
+        
+        try:
+            variacao_id = self.request.GET.get('vid')
+            
+            # Validate quantidade input to prevent errors
+            try:
+                quantidade = int(self.request.GET.get('quantidade', 1))
+                if quantidade < 1:
+                    messages.error(self.request, 'Quantidade inválida')
+                    return redirect(http_referer)
+            except ValueError:
+                messages.error(self.request, 'Quantidade inválida')
+                return redirect(http_referer)
 
-        if not variacao_id:
-            messages.error(self.request, 'Produto não existe')
-            return redirect(http_referer)
+            if not variacao_id:
+                messages.error(self.request, 'Produto não existe')
+                return redirect(http_referer)
 
-        variacao = get_object_or_404(Variacao, id=variacao_id)
-        variacao_estoque = variacao.estoque
-        produto = variacao.produto
+            variacao = get_object_or_404(Variacao, id=variacao_id)
+            variacao_estoque = variacao.estoque
+            produto = variacao.produto
 
-        produto_id = produto.id
-        produto_nome = produto.nome
-        variacao_nome = variacao.nome or ''
-        preco_unitario = variacao.preco
-        preco_unitario_promocional = variacao.preco_promocional
-        slug = produto.slug
-        imagem = produto.imagem.name if produto.imagem else ''
+            produto_id = produto.id
+            produto_nome = produto.nome
+            variacao_nome = variacao.nome or ''
+            preco_unitario = variacao.preco
+            preco_unitario_promocional = variacao.preco_promocional
+            slug = produto.slug
+            imagem = produto.imagem.name if produto.imagem else ''
 
-        if variacao_estoque < 1:
-            messages.error(self.request, 'Estoque insuficiente')
-            return redirect(http_referer)
+            if variacao_estoque < 1:
+                messages.error(self.request, 'Estoque insuficiente')
+                return redirect(http_referer)
 
-        if not self.request.session.get('carrinho'):
-            self.request.session['carrinho'] = {}
+            if not self.request.session.get('carrinho'):
+                self.request.session['carrinho'] = {}
+                self.request.session.save()
+
+            carrinho = self.request.session['carrinho']
+
+            if variacao_id in carrinho:
+                quantidade_carrinho = carrinho[variacao_id]['quantidade']
+                quantidade_carrinho += quantidade
+
+                if variacao_estoque < quantidade_carrinho:
+                    messages.warning(
+                        self.request,
+                        f'Estoque insuficiente para {quantidade_carrinho}x no '
+                        f'produto "{produto_nome}". Adicionamos {variacao_estoque}x '
+                        f'no seu carrinho.'
+                    )
+                    quantidade_carrinho = variacao_estoque
+
+                carrinho[variacao_id]['quantidade'] = quantidade_carrinho
+                carrinho[variacao_id]['preco_quantitativo'] = preco_unitario * quantidade_carrinho
+                carrinho[variacao_id]['preco_quantitativo_promocional'] = preco_unitario_promocional * quantidade_carrinho
+            else:
+                carrinho[variacao_id] = {
+                    'produto_id': produto_id,
+                    'produto_nome': produto_nome,
+                    'variacao_nome': variacao_nome,
+                    'variacao_id': variacao_id,
+                    'preco_unitario': preco_unitario,
+                    'preco_unitario_promocional': preco_unitario_promocional,
+                    'preco_quantitativo': preco_unitario * quantidade,
+                    'preco_quantitativo_promocional': preco_unitario_promocional * quantidade,
+                    'quantidade': quantidade,
+                    'slug': slug,
+                    'imagem': imagem,
+                }
+
             self.request.session.save()
 
-        carrinho = self.request.session['carrinho']
+            messages.success(
+                self.request,
+                f'Produto {produto_nome} {variacao_nome} adicionado ao seu carrinho'
+            )
 
-        if variacao_id in carrinho:
-            quantidade_carrinho = carrinho[variacao_id]['quantidade']
-            quantidade_carrinho += quantidade  # Adiciona a nova quantidade
-
-            # Se a nova quantidade ultrapassar o estoque disponível
-            if variacao_estoque < quantidade_carrinho:
-                messages.warning(
-                    self.request,
-                    f'Estoque insuficiente para {quantidade_carrinho}x no '
-                    f'produto "{produto_nome}". Adicionamos {variacao_estoque}x '
-                    f'no seu carrinho.'
-                )
-                quantidade_carrinho = variacao_estoque  # Ajusta para o máximo possível
-
-            carrinho[variacao_id]['quantidade'] = quantidade_carrinho
-            carrinho[variacao_id]['preco_quantitativo'] = preco_unitario * quantidade_carrinho
-            carrinho[variacao_id]['preco_quantitativo_promocional'] = preco_unitario_promocional * quantidade_carrinho
-        else:
-            # Adiciona o produto com a quantidade escolhida
-            carrinho[variacao_id] = {
-                'produto_id': produto_id,
-                'produto_nome': produto_nome,
-                'variacao_nome': variacao_nome,
-                'variacao_id': variacao_id,
-                'preco_unitario': preco_unitario,
-                'preco_unitario_promocional': preco_unitario_promocional,
-                'preco_quantitativo': preco_unitario * quantidade,
-                'preco_quantitativo_promocional': preco_unitario_promocional * quantidade,
-                'quantidade': quantidade,
-                'slug': slug,
-                'imagem': imagem,
-            }
-
-        self.request.session.save()
-
-        messages.success(
-            self.request,
-            f'Produto {produto_nome} {variacao_nome} adicionado ao seu carrinho  '
-            # f'carrinho {carrinho[variacao_id]["quantidade"]}x.'
-        )
-
-        return redirect(http_referer)
+            return redirect(http_referer)
+        except Exception as e:
+            messages.error(self.request, 'Erro ao adicionar produto ao carrinho')
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erro ao adicionar ao carrinho: {str(e)}")
+            return redirect(http_referer)
 
 
 class RemoverDoCarrinho(View):
@@ -449,25 +472,48 @@ class GerarPagamentoMercadoPago(View):
         try:
             sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
             nome = settings.MERCADO_PAGO_STORE_NAME
+            
+            # Verificar se as configurações do Mercado Pago estão definidas
+            if not hasattr(settings, 'MERCADO_PAGO_ACCESS_TOKEN') or not settings.MERCADO_PAGO_ACCESS_TOKEN:
+                messages.error(request, 'Erro de configuração do sistema de pagamento.')
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error("MERCADO_PAGO_ACCESS_TOKEN não está configurado")
+                return redirect(reverse('produto:resumodacompra'))
+            
             # Prepara os itens para pagamento
-            items = [
-                {
-                    "id": item_id,
-                    "title": item_data['produto_nome'],
-                    "quantity": item_data['quantidade'],
-                    "currency_id": "BRL",
-                    "unit_price": float(item_data['preco_unitario'])  # Usar o preço unitário correto
-                }
-                for item_id, item_data in carrinho.items()
-            ]
+            items = []
+            try:
+                for item_id, item_data in carrinho.items():
+                    # Validar que os dados necessários existem
+                    if not all(key in item_data for key in ['produto_nome', 'quantidade', 'preco_unitario']):
+                        raise KeyError("Dados do carrinho incompletos")
+                        
+                    # Verificar se o preço é válido
+                    price = float(item_data['preco_unitario'])
+                    if price <= 0:
+                        raise ValueError(f"Preço inválido para o produto {item_data['produto_nome']}")
+                        
+                    items.append({
+                        "id": item_id,
+                        "title": item_data['produto_nome'],
+                        "quantity": item_data['quantidade'],
+                        "currency_id": "BRL",
+                        "unit_price": price
+                    })
+            except (KeyError, ValueError, TypeError) as e:
+                messages.error(request, 'Erro nos dados do carrinho. Por favor, tente novamente.')
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Erro ao processar itens do carrinho: {str(e)}")
+                return redirect(reverse('produto:lista'))
 
             # Define as URLs de retorno
-            base_url = request.build_absolute_uri('/')  # Gera a URL base do site
+            base_url = request.build_absolute_uri('/')
             back_urls = {
                 "success": request.build_absolute_uri(reverse('pedido:pagamento_confirmado')),
                 "failure": request.build_absolute_uri(reverse('produto:resumodacompra')),
                 "pending": request.build_absolute_uri(reverse('produto:resumodacompra'))
-
             }
 
             # Salva os dados do pagamento na sessão
@@ -478,15 +524,17 @@ class GerarPagamentoMercadoPago(View):
                 "binary_mode": True,
                 "statement_descriptor": nome,
             }
-            request.session.modified = True  # Garante que a sessão será salva
+            request.session.modified = True
 
             # Redireciona para salvar o pedido antes de gerar o pagamento
             return redirect(reverse('pedido:salvarpedido'))
 
         except Exception as e:
-            messages.error(request, f"Erro ao processar pagamento: {str(e)}")
-            return redirect(reverse('produto:lista'))
-
+            messages.error(request, f"Erro ao processar pagamento. Por favor, tente novamente mais tarde.")
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erro detalhado ao processar pagamento: {str(e)}")
+            return redirect(reverse('produto:resumodacompra'))
 
 
     

@@ -5,10 +5,10 @@ from perfil.models import Perfil
 
 class ItemPedidoInline(admin.TabularInline):
     model = ItemPedido
-    extra = 0  # Remove campos extras vazios
+    extra = 0
     readonly_fields = ['produto', 'quantidade']
     can_delete = False
-    max_num = 0  # Impede adição de novos itens
+    max_num = 0
     
 class PedidoAdmin(admin.ModelAdmin):
     list_display = ['numero_pedido', 'status_colorido', 'get_cliente', 'total', 'qtd_total']
@@ -33,14 +33,47 @@ class PedidoAdmin(admin.ModelAdmin):
                 'get_cidade_estado',
             ),
         }),
+        ('DADOS DO PAGAMENTO', {
+            'classes': ('collapse',),  # Torna a seção expansível
+            'fields': (
+                'get_payment_info',
+                'collection_id',
+                'payment_id',
+                'payment_type',
+                'merchant_order_id',
+                'preference_id',
+                'site_id',
+                'processing_mode',
+            ),
+        }),
     )
 
     readonly_fields = [
         'total', 'qtd_total', 
         'get_cliente', 'get_telefone', 
-        'get_endereco_completo', 'get_cidade_estado'
+        'get_endereco_completo', 'get_cidade_estado',
+        'get_payment_info',
+        'collection_id', 'payment_id', 'payment_type',
+        'merchant_order_id', 'preference_id', 'site_id',
+        'processing_mode'
     ]
 
+    def get_payment_info(self, obj):
+        """Retorna um resumo formatado dos dados de pagamento"""
+        return format_html(
+            '<div style="background-color: #f9f9f9; padding: 10px; border-radius: 5px;">'
+            '<strong style="color: #666;">Resumo do Pagamento</strong><br>'
+            '<strong>ID da Transação:</strong> {}<br>'
+            '<strong>Tipo de Pagamento:</strong> {}<br>'
+            '<strong>Ordem:</strong> {}'
+            '</div>',
+            obj.payment_id or 'Não disponível',
+            obj.payment_type or 'Não disponível',
+            obj.merchant_order_id or 'Não disponível',
+        )
+    get_payment_info.short_description = "Informações do Pagamento"
+
+    # ... resto dos seus métodos existentes ...
     def numero_pedido(self, obj):
         return format_html('<strong>Pedido #{}</strong>', obj.id)
     numero_pedido.short_description = "Número do Pedido"
@@ -106,7 +139,6 @@ class PedidoAdmin(admin.ModelAdmin):
     get_cidade_estado.short_description = "Localização"
 
 admin.site.register(Pedido, PedidoAdmin)
-
 
 # from django.contrib import admin
 # from . import models

@@ -21,6 +21,16 @@ class Pedido(models.Model):
         )
     )
 
+    # Novos campos para rastreamento do pagamento
+    collection_id = models.CharField(max_length=100, blank=True, null=True)
+    payment_id = models.CharField(max_length=100, blank=True, null=True)
+    payment_type = models.CharField(max_length=100, blank=True, null=True)
+    merchant_order_id = models.CharField(max_length=100, blank=True, null=True)
+    preference_id = models.CharField(max_length=100, blank=True, null=True)
+    site_id = models.CharField(max_length=10, blank=True, null=True)
+    processing_mode = models.CharField(max_length=50, blank=True, null=True)
+    
+
     def save(self, *args, **kwargs):
         # Verifica se o pedido já existia no banco antes da alteração
         pedido_antigo = Pedido.objects.filter(pk=self.pk).first()

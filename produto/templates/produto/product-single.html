@@ -28,6 +28,22 @@
 		<link rel="stylesheet" href="{% static 'css/style.css' %}">
 		
   </head>
+  <style>
+	@media (max-width: 768px) {
+		.product-image-container {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			margin-bottom: 2rem;
+		}
+		
+		.product-image-container img {
+			max-height: 450px;
+			width: auto !important;
+			max-width: 100% !important;
+		}
+	}
+ </style>
 	{% include 'parciais/_nav.html' %}
     <!-- END nav -->
 	<div class="hero-wrap hero-bread" style="background-image: url('{% static 'images/Logo.png' %}');">
@@ -52,18 +68,21 @@
 <section class="ftco-section">
     <div class="container">
         <div class="row">
-            <div class="col-lg-6 mb-5 ftco-animate">
-                {% if produto.imagem %}
-                <a href="{{ produto.imagem.url }}" class="image-popup">
-                    <img src="{{ produto.imagem.url }}" class="img-fluid" alt="{{ produto.nome }}" style="width: 510px; height: 765px; object-fit: cover;">
+
+			{% comment %} <div class="col-lg-6 mb-5 ftco-animate"> {% endcomment %}
+			<div class="col-lg-6 mb-5 ftco-animate product-image-container">
+				{% if produto.imagem %}
+				<a href="{{ produto.imagem.url }}" class="image-popup">
+					<img src="{{ produto.imagem.url }}" class="img-fluid" alt="{{ produto.nome }}" style="width: 100%; max-width: 510px; height: auto; object-fit: contain;">
 					{% if produto.preco_marketing_promocional %}
 					<div class="badge position-absolute" style="top: 10px; left: 10px; font-size: 1.2rem; background-color: #FFA45C; color: black; padding: 5px 10px; border-radius: 5px; box-shadow: none; font-weight: normal;">
 						{{ desconto }}% OFF
 					</div>
+					{% endif %}
+				</a>
 				{% endif %}
-                </a>
-                {% endif %}
-            </div>
+			</div>
+
             <div class="col-lg-6 product-details pl-md-5 ftco-animate">
 									<h3>{{ produto.nome }}</h3>
 									<div class="rating d-flex">

@@ -5,45 +5,120 @@
 
 {% block conteudo %}
 
+<title>Vivan Calçados</title>
+
 <div class="row">
     <div class="col">
         <h3 class="mb-4">Pedidos de {{ user }}</h3>
-        <p>Abaixo todos os seus pedidos realizados na loja.</p>
+        <p class="mb-4">Abaixo todos os seus pedidos realizados na loja.</p>
 
-        <div class="table-responsive">
+        <!-- Desktop version -->
+        <div class="table-responsive d-none d-md-block">
             <table class="table table-striped">
-                <tr>
-                    <th scope="col">Pedido</th>
-                    <th scope="col">Total</th>
-                    <th scope="col">Qtd. Itens</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Mais detalhes</th>
-                </tr>
-
-
-                {% for pedido in pedidos %}
-                <tr>
-                    <th scope="row">{{ pedido }}</td>
-                    <td>{{ pedido.total|formata_preco }}</td>
-                    <td>{{ pedido.qtd_total }}</td>
-                    <td>
-                        <span style="color: #28a745; font-size: 0.9em; font-weight: bold; text-transform: uppercase; border: 1px solid #28a745; padding: 3px 6px; border-radius: 6px; background-color: #eaf8e5;">
-                            {{ pedido.get_status_display }}
-                        </span>
-                    </td>
-                                        <td>
-                        <a href="{% url 'pedido:detalhe' pedido.id %}">
-                            Ver <i class="fas fa-search-plus ml-2"></i>
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-
-
+                <thead>
+                    <tr>
+                        <th scope="col">Pedido</th>
+                        <th scope="col">Total</th>
+                        <th scope="col">Qtd. Itens</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Mais detalhes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pedido in pedidos %}
+                    <tr>
+                        <th scope="row">{{ pedido }}</th>
+                        <td>{{ pedido.total|formata_preco }}</td>
+                        <td>{{ pedido.qtd_total }}</td>
+                        <td>
+                            <span class="status-badge status-{{ pedido.get_status_display|lower }}">
+                                {{ pedido.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'pedido:detalhe' pedido.id %}" class="btn btn-sm btn-outline-primary">
+                                Ver <i class="fas fa-search-plus ml-2"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
             </table>
         </div>
+
+        <!-- Mobile version -->
+        <div class="d-md-none">
+            {% for pedido in pedidos %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Pedido {{ pedido }}</h5>
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <strong>Total:</strong>
+                        </div>
+                        <div class="col-6">
+                            {{ pedido.total|formata_preco }}
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <strong>Quantidade:</strong>
+                        </div>
+                        <div class="col-6">
+                            {{ pedido.qtd_total }} items
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Status:</strong>
+                        </div>
+                        <div class="col-6">
+                            <span class="status-badge status-{{ pedido.get_status_display|lower }}">
+                                {{ pedido.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    <a href="{% url 'pedido:detalhe' pedido.id %}" class="btn btn-primary btn-block">
+                        Ver detalhes <i class="fas fa-search-plus ml-2"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if not pedidos %}
+        <div class="alert alert-info" role="alert">
+            Você ainda não realizou nenhum pedido.
+        </div>
+        {% endif %}
     </div>
 </div>
+
+<style>
+    .status-badge {
+        color: #28a745;
+        font-size: 0.9em;
+        font-weight: bold;
+        text-transform: uppercase;
+        border: 1px solid #28a745;
+        padding: 3px 6px;
+        border-radius: 6px;
+        background-color: #eaf8e5;
+        display: inline-block;
+    }
+    
+    @media (max-width: 767px) {
+        .card-title {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .status-badge {
+            font-size: 0.8em;
+            padding: 2px 4px;
+        }
+    }
+</style>
 
 {% include 'parciais/_pagination.html' %}
 
