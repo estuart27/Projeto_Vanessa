@@ -77,6 +77,7 @@ WSGI_APPLICATION = 'loja.wsgi.application'
 #     }
 # }
 
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -114,16 +115,30 @@ USE_L10N = True
 
 USE_TZ = True
 
-STATIC_URL = '/static/'
+# STATIC_URL = '/static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Modifique para "staticfiles" para evitar confusão
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Modifique para "staticfiles" para evitar confusão
+
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'templates/static'),  # Certifique-se de que este caminho existe e contém seus arquivos estáticos
+# ]
+
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+STATIC_URL = '/static/'
+STATIC_ROOT = '/var/www/Projeto_Vanessa/static/'  # Novo caminho
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'templates/static'),  # Certifique-se de que este caminho existe e contém seus arquivos estáticos
+    os.path.join(BASE_DIR, 'templates/static'),  # Caso tenha arquivos estáticos locais
 ]
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = '/var/www/Projeto_Vanessa/media/'  # Novo caminho para arquivos de mídia
+
 
 
 MESSAGE_TAGS = {
