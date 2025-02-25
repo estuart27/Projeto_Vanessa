@@ -26,6 +26,8 @@
 		<link rel="stylesheet" href="{% static 'css/flaticon.css' %}">
 		<link rel="stylesheet" href="{% static 'css/icomoon.css' %}">
 		<link rel="stylesheet" href="{% static 'css/style.css' %}">
+		<link rel="icon" type="image/png" href="{% static 'images/Logotipo2.png' %}">
+
 		
   </head>
   <style>
@@ -43,8 +45,24 @@
 			max-width: 100% !important;
 		}
 	}
+	/* Ajuste padrão para celular (imagem se adapta automaticamente) */
+	.img-prod img {
+		width: 100%;
+		height: auto;
+		object-fit: cover;
+	}
+
+	/* Aplicar tamanho fixo SOMENTE para telas maiores (web) */
+	@media (min-width: 768px) {
+		.img-prod img {
+			width: 286px;  /* Largura fixa */
+			height: 429px; /* Altura fixa */
+		}
+	}
+
  </style>
 	{% include 'parciais/_nav.html' %}
+	{% include 'parciais/_whatsapp.html' %}
     <!-- END nav -->
 	<div class="hero-wrap hero-bread" style="background-image: url('{% static 'images/Logo.png' %}');">
 		<div class="container">
@@ -157,7 +175,7 @@
 												</div>
 												<div class="w-100"></div>
 												<div class="col-md-12 mb-4">
-														<p style="color: #000;">Descrição do produto: [Colocar Informaticaos necessarias ]</p>
+														<p style="color: #000;">Descrição do produto: [ {{ produto.descricao_curta }} ]</p>
 												</div>
 										</div>
 										<input type="hidden" name="produto_id" value="{{ produto.id }}">
@@ -216,10 +234,11 @@
                                 </p>
                             </div>
                         </div>
-                        <p class="bottom-area d-flex px-3">
-                            <a href="" class="add-to-cart text-center py-2 mr-1"><span>Add to cart <i class="ion-ios-add ml-1"></i></span></a>
-                            <a href="#" class="buy-now text-center py-2">Buy now<span><i class="ion-ios-cart ml-1"></i></span></a>
-                        </p>
+						<p class="bottom-area d-flex px-3">
+							<a href="{% url 'produto:detalhe' produto.slug %}" class="buy-now text-center py-2">
+								Comprar<span><i class="ion-ios-cart ml-1"></i></span>
+							</a>
+						</p>
                     </div>
                 </div>
             </div>

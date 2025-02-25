@@ -29,6 +29,9 @@ class Pedido(models.Model):
     preference_id = models.CharField(max_length=100, blank=True, null=True)
     site_id = models.CharField(max_length=10, blank=True, null=True)
     processing_mode = models.CharField(max_length=50, blank=True, null=True)
+
+    data = models.DateTimeField(auto_now_add=True)
+
     
 
     def save(self, *args, **kwargs):

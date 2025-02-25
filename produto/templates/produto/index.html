@@ -1,7 +1,7 @@
 {% load static %}
 <html lang="en">
   <head>
-    <title>Winkel - Free Bootstrap 4 Template by Colorlib</title>
+    <title>Vivan Calçados</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     
@@ -24,12 +24,38 @@
     <link rel="stylesheet" href="{% static 'css/flaticon.css' %}">
     <link rel="stylesheet" href="{% static 'css/icomoon.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+	<link rel="icon" type="image/png" href="{% static 'images/Logotipo2.png' %}">
+
   </head>
   <body class="goto-here">
     {% include 'parciais/_nav.html' %}
+	{% include 'parciais/_whatsapp.html' %}
+
     <!-- END nav -->
 	{% include 'parciais/_messages.html' %}
+
+	<style>
+		/* Ajuste padrão para celular (imagem se adapta automaticamente) */
+		.img-prod img {
+			width: 100%;
+			height: auto;
+			object-fit: cover;
+		}
 		
+		/* Aplicar tamanho fixo SOMENTE para telas maiores (web) */
+		@media (min-width: 768px) {
+			.img-prod {
+				width: 286px; /* Define o contêiner no tamanho correto */
+				height: 429px;
+			}
+		
+			.img-prod img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+			}
+		}
+	</style>				
 		<section class="ftco-section ftco-choose ftco-no-pb ftco-no-pt">
 			<div class="container">
 				<div class="row">
@@ -47,7 +73,7 @@
 		
 				<div class="row">
 					<div class="col-md-5 order-md-last d-flex align-items-stretch">
-						<div class="img img-2" style="background-image: url({% static 'images/about-2.jpg' %});"></div>
+						<div class="img img-2" style="background-image: url({% static 'images/about-3.jpg' %});"></div>
 					</div>
 					<div class="col-md-7 py-3 py-md-5 ftco-animate">
 						<div class="text text-2 py-md-5">

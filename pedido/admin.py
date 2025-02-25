@@ -11,7 +11,7 @@ class ItemPedidoInline(admin.TabularInline):
     max_num = 0
     
 class PedidoAdmin(admin.ModelAdmin):
-    list_display = ['numero_pedido', 'status_colorido', 'get_cliente', 'total', 'qtd_total']
+    list_display = ['numero_pedido', 'status_colorido', 'get_cliente', 'total', 'qtd_total', 'data']
     list_filter = ['status']
     search_fields = ['usuario__username', 'usuario__email']
     inlines = [ItemPedidoInline]
@@ -23,6 +23,7 @@ class PedidoAdmin(admin.ModelAdmin):
                 'status',
                 'total',
                 'qtd_total',
+                'data',  # Agora aparece no INFORMAÇÕES DO PEDIDO como somente leitura
             )
         }),
         ('DADOS PARA ENTREGA', {
@@ -49,14 +50,16 @@ class PedidoAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = [
-        'total', 'qtd_total', 
-        'get_cliente', 'get_telefone', 
+        'total', 'qtd_total',
+        'get_cliente', 'get_telefone',
         'get_endereco_completo', 'get_cidade_estado',
         'get_payment_info',
         'collection_id', 'payment_id', 'payment_type',
         'merchant_order_id', 'preference_id', 'site_id',
-        'processing_mode'
+        'processing_mode',
+        'data',  # Aqui garante que ele seja apenas leitura
     ]
+
 
     def get_payment_info(self, obj):
         """Retorna um resumo formatado dos dados de pagamento"""

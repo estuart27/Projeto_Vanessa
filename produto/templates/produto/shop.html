@@ -24,11 +24,89 @@
     <link rel="stylesheet" href="{% static 'css/flaticon.css' %}">
     <link rel="stylesheet" href="{% static 'css/icomoon.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+	<link rel="icon" type="image/png" href="{% static 'images/Logotipo2.png' %}">
+
   </head>
   <body>
 	{% include 'parciais/_nav.html' %}
 
 	{% include 'parciais/_messages.html' %}
+
+	{% include 'parciais/_whatsapp.html' %}
+
+
+	<style>
+		/* Ajuste padrão para celular (imagem se adapta automaticamente) */
+		.img-prod img {
+			width: 100%;
+			height: auto;
+			object-fit: cover;
+		}
+		
+		/* Aplicar tamanho fixo SOMENTE para telas maiores (web) */
+		@media (min-width: 768px) {
+			.img-prod img {
+				width: 286px;
+				height: 429px;
+			}
+		}
+		
+	</style>		
+	
+	{% comment %} <style>
+		/* Estilo para o container da imagem */
+		.img-prod {
+			display: block;
+			width: 286px;
+			height: 429px;
+			margin: 0 auto;
+			position: relative;
+		}
+		
+		/* Estilo para a imagem dentro do container */
+		.img-prod img {
+			width: 100%;
+			height: 100%;
+			object-fit: contain; /* Isso garante que a imagem completa seja exibida */
+		}
+		
+		/* Estilo para o badge de promoção */
+		.img-prod .status {
+			position: absolute;
+			top: 10px;
+			right: 10px;
+			background-color: #ff6b6b;
+			color: white;
+			padding: 3px 10px;
+			border-radius: 3px;
+			font-size: 12px;
+		}
+		
+		/* Responsividade para dispositivos móveis */
+		@media (max-width: 767px) {
+			.img-prod {
+				width: 100%; /* Ocupa a largura disponível */
+				height: auto; /* Altura automática */
+				max-height: none; /* Remove limite de altura */
+			}
+			
+			.img-prod img {
+				aspect-ratio: auto; /* Mantém a proporção original da imagem */
+				max-height: 100vw; /* Limita altura máxima */
+			}
+		}
+		
+		/* Garante que todos os produtos na mesma linha tenham aparência uniforme */
+		.row .col-md-4, .row .col-lg-3 {
+			display: flex;
+		}
+		
+		.row .produto-item {
+			display: flex;
+			flex-direction: column;
+			height: 100%;
+		}
+	</style> {% endcomment %}
 
 
 	
@@ -43,7 +121,7 @@
 						<span class="mr-2"><a href="{% url 'produto:index' %}" style="color: white;">Confira</a></span> 
 						<span style="color: white;">Ja </span>
 					</p>
-					<h1 class="mb-0 bread" style="color: white;">Shop</h1>
+					<h1 class="mb-0 bread" style="color: white;">Calçados</h1>
 				</div>
 			</div>
 		</div>
