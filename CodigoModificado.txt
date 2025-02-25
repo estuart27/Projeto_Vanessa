@@ -1,6 +1,0 @@
-1 - Taxa de entrega 
-
-
-
-3 - Pagina responsiva 
-4 - Template quando vai salvar os valor , fica um valor imcompleto

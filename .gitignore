@@ -5,6 +5,12 @@ __pycache__/
 
 # C extensions
 *.so
+*Rascunho_nginx.txt
+*rascunho_gunicorn.txt
+*gunicorn.txt
+*nginx.txt
+
+
 
 # Distribution / packaging
 .Python
@@ -123,7 +129,6 @@ CodigoModificado.txt
 *.sage.py
 
 # Environments
-.env
 .venv
 env/
 venv/
