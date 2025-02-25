@@ -10,7 +10,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'ct-w9@c7^-m#2(^b+1^n@#o=za2h&x#=w^3zvl^)ph^pda&196'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
 ALLOWED_HOSTS = ['*']
@@ -70,10 +70,21 @@ WSGI_APPLICATION = 'loja.wsgi.application'
 
 
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'datavanessa',                            # Nome do banco de dados
+        'USER': 'vanessa',        # Usuário do banco (confirme se é o correto)
+        'PASSWORD': 'estuart123040506',                 # Senha correta
+        'HOST': 'localhost',  # Host do Supabase
+        'PORT': '5432',                              # Porta confirmada como 6543
     }
 }
 
