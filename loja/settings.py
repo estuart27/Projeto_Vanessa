@@ -1,6 +1,8 @@
 from django.contrib.messages import constants
 import os
 from dotenv import load_dotenv
+from decouple import config
+
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -80,14 +82,15 @@ WSGI_APPLICATION = 'loja.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'datavanessa',                            # Nome do banco de dados
-        'USER': 'vanessa',        # Usuário do banco (confirme se é o correto)
-        'PASSWORD': 'estuart123040506',                 # Senha correta
-        'HOST': 'localhost',  # Host do Supabase
-        'PORT': '5432',                              # Porta confirmada como 6543
+        'ENGINE': config('DB_ENGINE'),
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
     }
 }
+
 
 
 AUTH_PASSWORD_VALIDATORS = [
