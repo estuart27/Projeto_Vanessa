@@ -143,7 +143,6 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = '/var/www/Projeto_Vanessa/media/'  # Novo caminho para arquivos de mídia
 
 
-
 MESSAGE_TAGS = {
     constants.DEBUG: 'alert-info',
     constants.ERROR: 'alert-danger',
