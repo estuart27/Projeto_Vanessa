@@ -180,10 +180,17 @@
 										</div>
 										<input type="hidden" name="produto_id" value="{{ produto.id }}">
 										<div class="text-center">
+											{% if user.is_authenticated %}
 												<a href="javascript:void(0)" onclick="this.closest('form').submit();" class="btn btn-black py-3 px-5 btn-lg">
-														<i class="fa fa-shopping-cart" aria-hidden="true"></i>
-														Adicionar ao carrinho
+													<i class="fa fa-shopping-cart" aria-hidden="true"></i>
+													Adicionar ao carrinho
 												</a>
+											{% else %}
+												<a href="{% url 'perfil:criar' %}" class="btn btn-primary py-3 px-5 btn-lg">
+													<i class="fa fa-sign-in" aria-hidden="true"></i>
+													Faça login para comprar
+												</a>
+											{% endif %}
 										</div>
 										</form>
 									</form>
