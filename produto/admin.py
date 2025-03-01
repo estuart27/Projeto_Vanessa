@@ -55,11 +55,11 @@ class PostagemAdmin(admin.ModelAdmin):
     date_hierarchy = 'data_criacao'
 
 
-@admin.register(Comentario)
-class ComentarioAdmin(admin.ModelAdmin):
-    list_display = ('autor', 'postagem', 'data_criacao')
-    list_filter = ('data_criacao', 'autor')
-    search_fields = ('conteudo', 'autor__username', 'postagem__titulo')
+# @admin.register(Comentario)
+# class ComentarioAdmin(admin.ModelAdmin):
+#     list_display = ('autor', 'postagem', 'data_criacao')
+#     list_filter = ('data_criacao', 'autor')
+#     search_fields = ('conteudo', 'autor__username', 'postagem__titulo')
 
 
 admin.site.register(models.Produto, ProdutoAdmin)

@@ -18,7 +18,7 @@ class Category(models.Model):
 
     class Meta:
         verbose_name = 'Categoria'
-        verbose_name_plural = 'Categorias'
+        verbose_name_plural = 'Categorias de Calçados'
 
     def __str__(self):
         return self.name
@@ -34,7 +34,7 @@ class SubCategory(models.Model):
 
     class Meta:
         verbose_name = 'Subcategoria'
-        verbose_name_plural = 'Subcategorias'
+        verbose_name_plural = 'Marcas'
 
     def __str__(self):
         return f"{self.category.name} -> {self.name}"
