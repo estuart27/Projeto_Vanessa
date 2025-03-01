@@ -1,6 +1,8 @@
 {% load static %}
 {% load omfilters %}
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
 <body class="goto-here">
     <div class="py-1 bg-black">
     <div class="container">
@@ -26,7 +28,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
   <div class="container">
     <a class="navbar-brand" href="{% url 'produto:lista' %}">
-        <img src="{% static 'images/Logotipo2.png' %}" alt="Vivanalcados" style="height: 70px; width: 90;">
+        <img src="{% static 'images/Logotipo2.png' %}" alt="Vivanalcados" style="height: 70px; width: 80;">
     </a>
   
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,16 +77,30 @@
           </li>
         
           {% if request.user.is_authenticated %}
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="dropdown04" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Mais</a>
-            <div class="dropdown-menu" aria-labelledby="dropdown04">
-              <a class="dropdown-item" href="{% url 'pedido:lista' %}">Meus pedidos</a>
-              <a class="dropdown-item" href="{% url 'perfil:criar' %}">Atualizar meus dados</a>
-              <a class="dropdown-item" href="{% url 'produto:contact' %}">Entrar em Contato</a>
-              <a class="dropdown-item" href="{% url 'produto:blog' %}">Blog</a>
-              <a class="dropdown-item" href="{% url 'produto:about' %}">Sobre Nós </a>
-              <a class="dropdown-item" href="{% url 'perfil:logout' %}">Sair</a>
-            </div>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="dropdown04" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <i class="fas fa-bars"></i> Mais
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdown04">
+                  <a class="dropdown-item" href="{% url 'pedido:lista' %}">
+                      <i class="fas fa-shopping-bag"></i> Meus pedidos
+                  </a>
+                  <a class="dropdown-item" href="{% url 'perfil:criar' %}">
+                      <i class="fas fa-user-edit"></i> Atualizar meus dados
+                  </a>
+                  <a class="dropdown-item" href="{% url 'produto:contact' %}">
+                      <i class="fas fa-envelope"></i> Entrar em Contato
+                  </a>
+                  <a class="dropdown-item" href="{% url 'produto:blog' %}">
+                      <i class="fas fa-blog"></i> Blog
+                  </a>
+                  <a class="dropdown-item" href="{% url 'produto:about' %}">
+                      <i class="fas fa-info-circle"></i> Sobre Nós
+                  </a>
+                  <a class="dropdown-item text-danger" href="{% url 'perfil:logout' %}">
+                      <i class="fas fa-sign-out-alt"></i> Sair
+                  </a>
+              </div>
           </li>
           {% if request.session.carrinho %}
           <li class="nav-item cta cta-colored"><a href="{% url 'produto:carrinho' %}" class="nav-link"><span class="icon-shopping_cart"> carrinho </span>[{{ request.session.carrinho|cart_total_qtd }}x]</a></li>
