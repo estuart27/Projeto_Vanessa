@@ -88,7 +88,7 @@ class ItemPedidoInline(admin.TabularInline):
             f'            <div><strong>Tamanho :</strong> {variacao}</div>'
             f'            <div><strong>Quantidade:</strong> {quantidade}</div>'
             f'            <div><strong>Preço Unitário:</strong> R$ {preco_exibido:.2f}</div>'
-            f'            {"<div><strong style=\'color: #dc3545;\'>Preço Promocional:</strong> R$ " + f"{preco_promocional:.2f}</div>" if preco_promocional > 0 else ""}'
+            f'          {"<div><strong style=\'color: #dc3545;\'>Preço Promocional:</strong> R$ " + f"{preco_promocional:.2f}</div>" if preco_promocional > 0 else ""}'
             f'            <div style="'
             f'                grid-column: 1 / -1; '
             f'                font-weight: bold; '
