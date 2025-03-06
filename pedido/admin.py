@@ -100,7 +100,7 @@ class ItemPedidoInline(admin.TabularInline):
             f'    </div>'
             f'</div>'
         )
-    
+
     item_detalhado.short_description = "Detalhes do Item"
 
     def has_add_permission(self, request, obj=None):
