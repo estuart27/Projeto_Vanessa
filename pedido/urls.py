@@ -10,6 +10,8 @@ urlpatterns = [
     path('detalhe/<int:pk>', views.Detalhe.as_view(), name='detalhe'),
     path('pagamento-confirmado/', views.PagamentoConfirmado.as_view(), name='pagamento_confirmado'),
     path('pagamento/whatsapp/', views.pagamento_whatsapp, name='pagamento_whatsapp'),
+    path('webhook/', views.MercadoPagoWebhook.as_view(), name='webhook'),
+
 
     
     

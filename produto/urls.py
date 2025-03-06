@@ -30,6 +30,7 @@ urlpatterns = [
      path('termos-e-condicoes/', views.termos, name='termos'),
      path('politica-de-privacidade/', views.politica, name='politica'),
      path('trocas-e-devolucoes/', views.troca, name='troca'),
+     
 
 
 

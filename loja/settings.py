@@ -15,9 +15,9 @@ SECRET_KEY = 'ct-w9@c7^-m#2(^b+1^n@#o=za2h&x#=w^3zvl^)ph^pda&196'
 DEBUG = False
 # DEBUG = True
 
-ALLOWED_HOSTS = ['xn--vivancalados-rdb.com', 'www.xn--vivancalados-rdb.com','www.vivancalçados.com','vivancalçados.com']
+# ALLOWED_HOSTS = ['xn--vivancalados-rdb.com', 'www.xn--vivancalados-rdb.com','www.vivancalçados.com','vivancalçados.com']
 
-# ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'produto',
@@ -129,7 +129,7 @@ USE_TZ = True
 # ]
 
 # MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -170,6 +170,9 @@ MERCADO_PAGO_ACCESS_TOKEN = os.getenv('MERCADO_PAGO_ACCESS_TOKEN')
 
 MERCADO_PAGO_STORE_NAME = 'Vivan Calçados'
 
+MERCADO_PAGO_WEBHOOK_SECRET = '68a7cd45fc10f0ffd71772529e4a9817cbfea00cba3ffbc1bcf027bd7496ce80'
+
+
 # Configuração do ambiente (True para sandbox/teste, False para produção)
 MERCADO_PAGO_SANDBOX = True
 
@@ -183,6 +186,82 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+
+# settings.py - Adicione ao final do arquivo
+
+# Configuração de Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {asctime} {message}',
+            'style': '{',
+        },
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/django.log'),
+            'maxBytes': 10485760,  # 10 MB
+            'backupCount': 10,
+            'formatter': 'verbose',
+        },
+        'payment_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/payments.log'),
+            'maxBytes': 10485760,  # 10 MB
+            'backupCount': 10,
+            'formatter': 'verbose',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file', 'mail_admins'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'pedido': {
+            'handlers': ['console', 'payment_file', 'mail_admins'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'produto': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+# Certifique-se de que o diretório de logs existe
+import os
+os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
 
 
 
