@@ -260,7 +260,7 @@ class SalvarPedido(View):
                     "auto_return": "approved",
                     "binary_mode": True,
                     "statement_descriptor": nome,
-                    # "notification_url": self.request.build_absolute_uri(reverse('pedido:webhook'))  # Adicione esta linha
+                    "notification_url": self.request.build_absolute_uri(reverse('pedido:webhook'))  # Adicione esta linha
 
                 }
 

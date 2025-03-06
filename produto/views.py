@@ -620,7 +620,7 @@ class GerarPagamentoMercadoPago(View):
                 "auto_return": "approved",
                 "binary_mode": True,
                 "statement_descriptor": nome,
-                # "notification_url": request.build_absolute_uri(reverse('pedido:webhook'))  # URL do Webhook
+                "notification_url": request.build_absolute_uri(reverse('pedido:webhook'))  # URL do Webhook
             }
 
             # Cria a preferência de pagamento
