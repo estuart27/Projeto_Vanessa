@@ -548,18 +548,15 @@ class ResumoDaCompra(View):
 #             return redirect(reverse('produto:resumodacompra'))
 
 
-# Views Produtos 
 import logging
 logger = logging.getLogger(__name__)
 
 class GerarPagamentoMercadoPago(View):
     def get(self, request, *args, **kwargs):
-        # Verifica se o usuário está autenticado
         if not request.user.is_authenticated:
             messages.error(request, 'Você precisa fazer login.')
             return redirect(reverse('perfil:criar'))
 
-        # Verifica se há itens no carrinho
         carrinho = request.session.get('carrinho')
         if not carrinho:
             messages.error(request, 'Carrinho vazio.')
@@ -568,62 +565,63 @@ class GerarPagamentoMercadoPago(View):
         try:
             sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
             nome = settings.MERCADO_PAGO_STORE_NAME
-            
-            # Verificar se as configurações do Mercado Pago estão definidas
+
             if not hasattr(settings, 'MERCADO_PAGO_ACCESS_TOKEN') or not settings.MERCADO_PAGO_ACCESS_TOKEN:
                 messages.error(request, 'Erro de configuração do sistema de pagamento.')
                 logger.error("MERCADO_PAGO_ACCESS_TOKEN não está configurado")
                 return redirect(reverse('produto:resumodacompra'))
-            
-            # Prepara os itens para pagamento
+
             items = []
             try:
                 for item_id, item_data in carrinho.items():
-                    # Validar que os dados necessários existem
                     if not all(key in item_data for key in ['produto_nome', 'quantidade', 'preco_unitario']):
                         raise KeyError("Dados do carrinho incompletos")
-                        
-                    # Verificar se o preço é válido
+
                     price = float(item_data['preco_unitario'])
                     if price <= 0:
                         raise ValueError(f"Preço inválido para o produto {item_data['produto_nome']}")
-                        
+
                     items.append({
                         "id": item_id,
                         "title": item_data['produto_nome'],
                         "quantity": item_data['quantidade'],
                         "currency_id": "BRL",
                         "unit_price": price,
-                        "category_id": "produtos",  # Categoria do item
-                        "description": f"Produto: {item_data['produto_nome']}",  # Descrição do item
+                        "category_id": "produtos",
+                        "description": f"Produto: {item_data['produto_nome']}",
                     })
             except (KeyError, ValueError, TypeError) as e:
                 messages.error(request, 'Erro nos dados do carrinho. Por favor, tente novamente.')
                 logger.error(f"Erro ao processar itens do carrinho: {str(e)}")
                 return redirect(reverse('produto:lista'))
 
-            # Adiciona informações do comprador
             payer = {
-                "first_name": request.user.first_name,  # Nome do comprador
-                "last_name": request.user.last_name,    # Sobrenome do comprador
+                "first_name": request.user.username,
+                "last_name": request.user.last_name,
             }
 
-            # Configura os dados do pagamento
             payment_data = {
                 "items": items,
-                "payer": payer,  # Informações do comprador
+                "payer": payer,
                 "back_urls": {
                     "success": request.build_absolute_uri(reverse('pedido:pagamento_confirmado')),
                     "failure": request.build_absolute_uri(reverse('produto:resumodacompra')),
                     "pending": request.build_absolute_uri(reverse('produto:resumodacompra'))
                 },
                 "auto_return": "approved",
-                "binary_mode": True,
+                "binary_mode": False,  # Permite pagamentos parcelados e cartões
                 "statement_descriptor": nome,
-                "notification_url": request.build_absolute_uri(reverse('pedido:webhook'))  # URL do Webhook
+                "notification_url": request.build_absolute_uri(reverse('pedido:webhook')),
+
+                # Permite cartões de crédito e parcelamento
+                "payment_methods": {
+                    "excluded_payment_types": [
+                        {"id": "ticket"}  # Exclui boleto, permitindo cartões e Pix
+                    ],
+                    "installments": 12  # Habilita parcelamento até 12x
+                }
             }
 
-            # Cria a preferência de pagamento
             preference_response = sdk.preference().create(payment_data)
             if "response" in preference_response:
                 return redirect(preference_response["response"]["init_point"])

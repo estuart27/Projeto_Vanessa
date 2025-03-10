@@ -7,14 +7,19 @@ from django.utils.decorators import method_decorator
 import mercadopago
 from django.conf import settings
 from django.core.mail import send_mail
-from django.http import HttpResponseRedirect
 import logging
 import traceback
 from django.db import transaction
+from django.http import HttpResponse
+import json
+import logging
+import hmac
+import hashlib
+from django.db.models import Q
 
 
 from .models import Pedido, ItemPedido
-from produto.models import Variacao, Produto
+from produto.models import Variacao
 
 
 from utils import utils
@@ -105,6 +110,7 @@ def pagamento_whatsapp(request):
         )
         return redirect('produto:lista')
 
+import uuid
 
 #Viwes Pedidos 
 class SalvarPedido(View):
@@ -215,7 +221,9 @@ class SalvarPedido(View):
                 'total': valor_total_carrinho,
                 'qtd_total': qtd_total_carrinho,
                 'status': 'A',
-                'itens': list(carrinho.values())
+                'itens': list(carrinho.values()),
+                'external_reference': pedido_uuid  # Adicione aqui também
+
             }
 
             # Verificar se o token do Mercado Pago está configurado
@@ -226,10 +234,12 @@ class SalvarPedido(View):
                     'Erro na configuração do gateway de pagamento. Entre em contato com o suporte.'
                 )
                 return redirect('produto:carrinho')
+            
 
             # Inicializa o SDK do Mercado Pago
             try:
                 sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
+                print("MERCADO_PAGO_ACCESS_TOKEN:", settings.MERCADO_PAGO_ACCESS_TOKEN)
                 nome = getattr(settings, 'MERCADO_PAGO_STORE_NAME', 'Vivan Calçados')
 
                 # Prepara os itens para o Mercado Pago
@@ -248,20 +258,50 @@ class SalvarPedido(View):
                 failure_url = self.request.build_absolute_uri(reverse('produto:resumodacompra'))
                 pending_url = self.request.build_absolute_uri(reverse('produto:resumodacompra'))
 
+                pedido_uuid = str(uuid.uuid4())
+                # Armazenar na sessão para recuperar posteriormente
+                self.request.session['pedido_referencia'] = pedido_uuid
+
                 # Configura os dados do pagamento
+                # payment_data = {
+                #     "items": items,
+                #     "external_reference": pedido_uuid,  # Usando o ID do usuário como referência temporária
+                #     "back_urls": {
+                #         "success": success_url,
+                #         "failure": failure_url,
+                #         "pending": pending_url
+                #     },
+                #     "auto_return": "approved",
+                #     "binary_mode": True,
+                #     "statement_descriptor": nome,
+                #     # "notification_url": self.request.build_absolute_uri(reverse('pedido:webhook'))  # Adicione esta linha
+
+                # }
+                payer = {
+                    "first_name": self.request.user.username,
+                    "last_name": self.request.user.username,
+                }
+                
                 payment_data = {
                     "items": items,
-                    "external_reference": str(self.request.user.id),  # Usando o ID do usuário como referência temporária
+                    "payer": payer,
                     "back_urls": {
                         "success": success_url,
                         "failure": failure_url,
                         "pending": pending_url
                     },
                     "auto_return": "approved",
-                    "binary_mode": True,
+                    "binary_mode": False,  # Permite pagamentos parcelados e cartões
                     "statement_descriptor": nome,
-                    "notification_url": self.request.build_absolute_uri(reverse('pedido:webhook'))  # Adicione esta linha
+                    "notification_url": self.request.build_absolute_uri(reverse('pedido:webhook')),
 
+                    # Permite cartões de crédito e parcelamento
+                    "payment_methods": {
+                        "excluded_payment_types": [
+                            {"id": "ticket"}  # Exclui boleto, permitindo cartões e Pix
+                        ],
+                        "installments": 12  # Habilita parcelamento até 12x
+                    }
                 }
 
                 preference_response = sdk.preference().create(payment_data)
@@ -290,13 +330,15 @@ class SalvarPedido(View):
                 )
             
             return redirect('produto:carrinho')
+
+        except mercadopago.exceptions.MPException as e:
+            logger.error(f"Erro ao processar pagamento com Mercado Pago: {str(e)}")
+            messages.error(self.request, 'Erro ao processar o pagamento. Por favor, tente novamente mais tarde.')
+            return redirect('produto:carrinho')
         except Exception as e:
             logger.error(f"Erro geral em SalvarPedido: {str(e)}")
             logger.error(traceback.format_exc())
-            messages.error(
-                self.request,
-                'Ocorreu um erro ao processar seu pedido. Por favor, tente novamente.'
-            )
+            messages.error(self.request, 'Ocorreu um erro ao processar seu pedido. Por favor, tente novamente.')
             return redirect('produto:lista')
 
 import time
@@ -401,7 +443,8 @@ class PagamentoConfirmado(View):
                             preference_id=self.request.GET.get('preference_id', ''),
                             site_id=self.request.GET.get('site_id', ''),
                             processing_mode=self.request.GET.get('processing_mode', ''),
-                            external_reference=dados_pedido.get('external_reference', '')  # Referência externa
+                            external_reference=dados_pedido.get('external_reference', ''),  # Referência externa
+
                         )
                         pedido.save()
                         logger.info(f"Novo pedido criado: {pedido.id} (payment_id: {payment_id})")
@@ -573,14 +616,7 @@ class PagamentoConfirmado(View):
             self.request.session.save()
 
         
-from django.http import HttpResponse
-import json
-import logging
-import hmac
-import hashlib
-from django.db.models import Q
 
-logger = logging.getLogger(__name__)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class MercadoPagoWebhook(View):
@@ -734,241 +770,3 @@ class Lista(DispatchLoginRequiredMixin, ListView):
                 'Ocorreu um erro ao carregar seus pedidos. Por favor, tente novamente.'
             )
             return Pedido.objects.none()  # Retorna queryset vazio em caso de erro
-
-
-
-# @method_decorator(csrf_exempt, name='dispatch')
-# class MercadoPagoWebhook(View):
-#     def post(self, request, *args, **kwargs):
-#         try:
-#             # Log do payload recebido
-#             payload = json.loads(request.body)
-#             logger.info(f"Webhook recebido: {payload}")
-
-#             # Verificar o tipo de evento
-#             if payload.get('action') == 'payment.updated':
-#                 payment_id = payload.get('data', {}).get('id')
-#                 if payment_id:
-#                     # Aqui você pode buscar o pagamento no Mercado Pago para atualizar o status no seu sistema
-#                     sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
-#                     payment_info = sdk.payment().get(payment_id)
-
-#                     if "response" in payment_info:
-#                         payment_status = payment_info["response"].get("status")
-#                         logger.info(f"Status do pagamento {payment_id}: {payment_status}")
-
-#                         # Atualize o status do pedido no seu sistema com base no payment_status
-#                         # Exemplo: buscar o pedido pelo payment_id e atualizar o status
-#                         # pedido = Pedido.objects.get(payment_id=payment_id)
-#                         # pedido.status = payment_status
-#                         # pedido.save()
-
-#             return HttpResponse(status=200)
-#         except Exception as e:
-#             logger.error(f"Erro ao processar webhook: {str(e)}")
-#             return HttpResponse(status=500)
-
-
-
-
-
-# @method_decorator(csrf_exempt, name='dispatch')
-# class PagamentoConfirmado(View):
-#     def get(self, *args, **kwargs):
-#         status = self.request.GET.get('status')
-        
-#         # Verificar se o usuário está autenticado
-#         if not self.request.user.is_authenticated:
-#             messages.error(
-#                 self.request,
-#                 'Sessão expirada. Por favor, faça login novamente.'
-#             )
-#             # Salvar dados temporários para recuperação
-#             if 'dados_pedido' in self.request.session:
-#                 self.request.session['pedido_pendente'] = self.request.session['dados_pedido']
-#             return redirect('perfil:criar')
-            
-#         try:
-#             email_usuario = self.request.user.email
-#             email_loja = getattr(settings, 'EMAIL_HOST_USER', '')
-            
-#             # Verificar se o email da loja está configurado
-#             if not email_loja:
-#                 logger.warning("EMAIL_HOST_USER não configurado")
-                
-#             if status == 'approved':
-#                 dados_pedido = self.request.session.get('dados_pedido')
-                
-#                 if not dados_pedido:
-#                     messages.error(
-#                         self.request,
-#                         'Dados do pedido não encontrados. O pagamento foi processado, mas ocorreu um erro ao salvar o pedido.'
-#                     )
-#                     logger.error("Pagamento aprovado mas dados_pedido não encontrados na sessão")
-#                     return redirect('produto:lista')
-                
-#                 # Usar transação para garantir que todas as operações sejam concluídas com sucesso
-#                 with transaction.atomic():
-#                     # Cria o pedido
-#                     pedido = Pedido(
-#                         usuario_id=dados_pedido['usuario_id'],
-#                         total=dados_pedido['total'],
-#                         qtd_total=dados_pedido['qtd_total'],
-#                         status='P',  # Pago
-#                         # Dados do pagamento
-#                         collection_id=self.request.GET.get('collection_id', ''),
-#                         payment_id=self.request.GET.get('payment_id', ''),
-#                         payment_type=self.request.GET.get('payment_type', ''),
-#                         merchant_order_id=self.request.GET.get('merchant_order_id', ''),
-#                         preference_id=self.request.GET.get('preference_id', ''),
-#                         site_id=self.request.GET.get('site_id', ''),
-#                         processing_mode=self.request.GET.get('processing_mode', '')
-#                     )
-#                     pedido.save()
-                    
-#                     # Verificar se há itens no pedido
-#                     if not dados_pedido['itens']:
-#                         raise ValueError("Não há itens no pedido")
-
-#                     # Cria os itens do pedido
-#                     itens_pedido = []
-#                     for v in dados_pedido['itens']:
-#                         # Verificar campos obrigatórios
-#                         if not all(k in v for k in ['produto_nome', 'produto_id', 'variacao_nome', 'variacao_id']):
-#                             raise ValueError(f"Dados de item incompletos: {v}")
-                            
-#                         item = ItemPedido(
-#                             pedido=pedido,
-#                             produto=v['produto_nome'],
-#                             produto_id=v['produto_id'],
-#                             variacao=v['variacao_nome'],
-#                             variacao_id=v['variacao_id'],
-#                             preco=v['preco_quantitativo'],
-#                             preco_promocional=v['preco_quantitativo_promocional'],
-#                             quantidade=v['quantidade'],
-#                             imagem=v.get('imagem', ''),  # Campo opcional
-#                         )
-#                         itens_pedido.append(item)
-                    
-#                     # Atualizar estoque das variações
-#                     for v in dados_pedido['itens']:
-#                         try:
-#                             variacao = Variacao.objects.get(id=v['variacao_id'])
-#                             variacao.estoque -= v['quantidade']
-#                             if variacao.estoque < 0:
-#                                 variacao.estoque = 0
-#                             variacao.save()
-#                         except Variacao.DoesNotExist:
-#                             logger.warning(f"Variação {v['variacao_id']} não encontrada ao atualizar estoque")
-#                         except Exception as e:
-#                             logger.error(f"Erro ao atualizar estoque: {str(e)}")
-                    
-#                     # Criar itens em massa
-#                     ItemPedido.objects.bulk_create(itens_pedido)
-
-#                     # Lista de produtos para incluir no email
-#                     produtos_lista = '\n'.join([
-#                         f"- {item['quantidade']}x {item['produto_nome']} ({item['variacao_nome']})"
-#                         for item in dados_pedido['itens']
-#                     ])
-
-#                     # Tentar enviar emails, mas não falhar se houver erro
-#                     try:
-#                         if email_usuario and email_loja:
-#                             # Email para o cliente
-#                             send_mail(
-#                                 subject='🎉 Pedido Confirmado - Vivan Calçados',
-#                                 message=(
-#                                     f'Olá, {self.request.user.first_name}!\n\n'
-#                                     'Temos uma ótima notícia! O seu pedido foi confirmado com sucesso e já estamos preparando tudo para envio. 📦✨\n\n'
-#                                     f'🔹 Número do Pedido: #{pedido.id}\n'
-#                                     f'🔹 Status: Confirmado ✅\n\n'
-#                                     '📝 Seus produtos:\n'
-#                                     f'{produtos_lista}\n\n'
-#                                     f'💰 Total do pedido: R$ {dados_pedido["total"]:.2f}\n\n'
-#                                     '📌 O que acontece agora?\n'
-#                                     '➡️ Nossa equipe está separando os itens do seu pedido.\n'
-#                                     '➡️ Assim que for enviado, você receberá um novo e-mail com os detalhes.\n\n'
-#                                     '📅 Previsão de Entrega: Em breve você receberá detalhes sobre o prazo estimado.\n\n'
-#                                     'Caso tenha dúvidas, entre em contato com nosso suporte. Estamos à disposição para te ajudar! 😊\n\n'
-#                                     'Obrigado por confiar na Vivan Calçados! Esperamos que você aproveite sua compra. 💙\n\n'
-#                                     'Atenciosamente,\n'
-#                                     'Equipe Vivan Calçados\n'
-#                                     '📧 suporte@vivancalcados.com | 📞 +55 (43) 9641-4232'
-#                                 ),
-#                                 from_email=email_loja,
-#                                 recipient_list=[email_usuario],
-#                                 fail_silently=True,
-#                             )
-
-#                             # Email para a loja
-#                             send_mail(
-#                                 subject=f'🛍️ Novo Pedido #{pedido.id} - Preparar para Envio',
-#                                 message=(
-#                                     '🔔 Novo pedido recebido!\n\n'
-#                                     f'📦 Pedido #{pedido.id}\n'
-#                                     f'👤 Cliente: {self.request.user.get_full_name()}\n'
-#                                     f'📧 Email: {email_usuario}\n\n'
-#                                     '📝 Produtos:\n'
-#                                     f'{produtos_lista}\n\n'
-#                                     f'💰 Valor total: R$ {dados_pedido["total"]:.2f}\n\n'
-#                                     '⚠️ Por favor, prepare este pedido para envio.\n\n'
-#                                     'Este é um email automático do sistema.'
-#                                 ),
-#                                 from_email=email_loja,
-#                                 recipient_list=[email_loja],
-#                                 fail_silently=True,
-#                             )
-#                     except Exception as e:
-#                         logger.error(f"Erro ao enviar emails: {str(e)}")
-#                         # Não interromper o fluxo por erro nos emails
-
-#                     # Limpa os dados temporários
-#                     if 'dados_pedido' in self.request.session:
-#                         del self.request.session['dados_pedido']
-#                     if 'carrinho_temp' in self.request.session:
-#                         del self.request.session['carrinho_temp']
-
-#                     messages.success(
-#                         self.request,
-#                         'Pagamento confirmado com sucesso! Seu pedido foi registrado e está sendo processado. Obrigado pela compra.'
-#                     )
-
-#                     # Armazenar ID do pedido na sessão para referência
-#                     self.request.session['ultimo_pedido_id'] = pedido.id
-#                     self.request.session.save()
-
-#                     return redirect('pedido:detalhe', pk=pedido.id)
-#             else:
-#                 # Restaura o carrinho se o pagamento falhou
-#                 if 'carrinho_temp' in self.request.session:
-#                     self.request.session['carrinho'] = self.request.session['carrinho_temp']
-#                     del self.request.session['carrinho_temp']
-                
-#                 # Registrar o status recebido
-#                 logger.warning(f"Pagamento não aprovado. Status: {status}")
-                
-#                 messages.warning(
-#                     self.request,
-#                     f'O pagamento não foi aprovado (status: {status}). Por favor, tente novamente ou escolha outra forma de pagamento.'
-#                 )
-            
-#             return redirect('produto:resumodacompra')
-                
-#         except Exception as e:
-#             logger.error(f"Erro ao processar retorno do pagamento: {str(e)}")
-#             logger.error(traceback.format_exc())
-            
-#             # Restaurar o carrinho em caso de erro
-#             if 'carrinho_temp' in self.request.session:
-#                 self.request.session['carrinho'] = self.request.session['carrinho_temp']
-#                 del self.request.session['carrinho_temp']
-            
-#             messages.error(
-#                 self.request,
-#                 'Ocorreu um erro ao processar o retorno do pagamento. Por favor, verifique se a compra foi concluída em sua conta ou entre em contato com o suporte.'
-#             )
-#             return redirect('produto:lista')
-        
-#         finally:
-#             self.request.session.save()
