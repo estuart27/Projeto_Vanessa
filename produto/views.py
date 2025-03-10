@@ -547,7 +547,7 @@ class ResumoDaCompra(View):
 #             logger.error(f"Erro detalhado ao processar pagamento: {str(e)}")
 #             return redirect(reverse('produto:resumodacompra'))
 
-
+import uuid
 import logging
 logger = logging.getLogger(__name__)
 
@@ -594,6 +594,10 @@ class GerarPagamentoMercadoPago(View):
                 messages.error(request, 'Erro nos dados do carrinho. Por favor, tente novamente.')
                 logger.error(f"Erro ao processar itens do carrinho: {str(e)}")
                 return redirect(reverse('produto:lista'))
+            
+            pedido_uuid = str(uuid.uuid4())
+                # Armazenar na sessão para recuperar posteriormente
+            self.request.session['pedido_referencia'] = pedido_uuid
 
             payer = {
                 "first_name": request.user.username,
@@ -612,6 +616,8 @@ class GerarPagamentoMercadoPago(View):
                 "binary_mode": False,  # Permite pagamentos parcelados e cartões
                 "statement_descriptor": nome,
                 "notification_url": request.build_absolute_uri(reverse('pedido:webhook')),
+                "external_reference": pedido_uuid,  # Passando o UUID como external_reference
+
 
                 # Permite cartões de crédito e parcelamento
                 "payment_methods": {
