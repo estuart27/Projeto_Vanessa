@@ -89,59 +89,58 @@
 		<section class="ftco-section bg-light">
 			<div class="container">
 				<div class="row justify-content-center mb-3 pb-3">
-				  <div class="col-md-12 heading-section text-center ftco-animate">
-					<h2 class="mb-4">Explore Nossos Modelos</h2>
-					<p>Confira os modelos disponíveis e encontre o calçado ideal para você. Temos opções para todas as ocasiões – escolha o seu e faça seu pedido agora!</p>
-				</div>
+					<div class="col-md-12 heading-section text-center ftco-animate">
+						<h2 class="mb-4">Explore Nossos Modelos</h2>
+						<p>Confira os modelos disponíveis e encontre o calçado ideal para você. Temos opções para todas as ocasiões – escolha o seu e faça seu pedido agora!</p>
+					</div>
 				</div>   		
 			</div>
 			<div class="container">
 				<div class="row">
-					<div class="row">
-						{% if produtos %}
-							{% for produto in produtos %}
-					<div class="col-sm col-md-6 col-lg ftco-animate">
-						<div class="product">
-							{% if produto.imagem %}
-							<a href="{% url 'produto:detalhe' produto.slug %}" class="img-prod">
-								<img class="img-fluid" src="{{ produto.imagem.url }}" alt="{{ produto.nome }}">
-								{% if produto.preco_marketing_promocional %}
-									<span class="status">Promoção</span>
-								{% endif %}
-								<div class="overlay"></div>
-							</a>
-						{% endif %}
-							<div class="text py-3 px-3">
-								<h3><a href="{% url 'produto:detalhe' produto.slug %}">{{ produto.nome }}</a></h3>
-								<div class="d-flex">
-									<div class="pricing">
-										{% if produto.preco_marketing_promocional %}
-										<span class="price-sale">{{ produto.get_preco_promocional_formatado }}</span>
-										{% else %}
-											<span class="price-sale">{{ produto.get_preco_formatado }}</span>
-										{% endif %}									
-									</div>
-									<div class="rating">
-										<p class="text-right">
-											<a href="#"><span class="ion-ios-star-outline"></span></a>
-											<a href="#"><span class="ion-ios-star-outline"></span></a>
-											<a href="#"><span class="ion-ios-star-outline"></span></a>
-											<a href="#"><span class="ion-ios-star-outline"></span></a>
-											<a href="#"><span class="ion-ios-star-outline"></span></a>
+					{% if produtos %}
+						{% for produto in produtos %}
+							<div class="col-sm-6 col-md-3 col-lg-3 ftco-animate mb-4"> <!-- Adicionei mb-4 para margem inferior -->
+								<div class="product">
+									{% if produto.imagem %}
+										<a href="{% url 'produto:detalhe' produto.slug %}" class="img-prod">
+											<img class="img-fluid" src="{{ produto.imagem.url }}" alt="{{ produto.nome }}" style="margin: 10px;"> <!-- Adicionei margem à imagem -->
+											{% if produto.preco_marketing_promocional %}
+												<span class="status">Promoção</span>
+											{% endif %}
+											<div class="overlay"></div>
+										</a>
+									{% endif %}
+									<div class="text py-3 px-3">
+										<h3><a href="{% url 'produto:detalhe' produto.slug %}">{{ produto.nome }}</a></h3>
+										<div class="d-flex">
+											<div class="pricing">
+												{% if produto.preco_marketing_promocional %}
+													<span class="price-sale">{{ produto.get_preco_promocional_formatado }}</span>
+												{% else %}
+													<span class="price-sale">{{ produto.get_preco_formatado }}</span>
+												{% endif %}									
+											</div>
+											<div class="rating">
+												<p class="text-right">
+													<a href="#"><span class="ion-ios-star-outline"></span></a>
+													<a href="#"><span class="ion-ios-star-outline"></span></a>
+													<a href="#"><span class="ion-ios-star-outline"></span></a>
+													<a href="#"><span class="ion-ios-star-outline"></span></a>
+													<a href="#"><span class="ion-ios-star-outline"></span></a>
+												</p>
+											</div>
+										</div>
+										<p class="bottom-area d-flex px-3">
+											<a href="{% url 'produto:detalhe' produto.slug %}" class="buy-now text-center py-2">
+												Comprar<span><i class="ion-ios-cart ml-1"></i></span>
+											</a>
 										</p>
 									</div>
 								</div>
-								<p class="bottom-area d-flex px-3">
-									<a href="{% url 'produto:detalhe' produto.slug %}" class="buy-now text-center py-2">
-										Comprar<span><i class="ion-ios-cart ml-1"></i></span>
-									</a>
-								</p>
 							</div>
-						</div>
-					</div>
-					{% endfor %}
+						{% endfor %}
 					{% else %}
-					<div class="col-12">
+						<div class="col-12">
 							<p style="font-size: 1.5rem; font-weight: bold; color: #6c757d; background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 5px;">
 								Nenhum produto encontrado.
 							</p>
@@ -149,12 +148,15 @@
 					{% endif %}
 				</div>
 				<div class="text-center mt-4">
-					<a href="{% url 'produto:lista' %}"  class="btn btn-primary py-2 px-4">
+					<a href="{% url 'produto:lista' %}" class="btn btn-primary py-2 px-4">
 						Ver mais opções <i class="ion-ios-arrow-round-forward ml-2"></i>
 					</a>
 				</div>
 			</div>
+		</section>
 	</section>
+
+	
 	<section class="ftco-section ftco-counter" style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url({% static 'images/calcado.jpg' %});">
 		<div class="container py-5">
 		  <div class="row justify-content-center">

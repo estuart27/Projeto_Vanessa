@@ -172,6 +172,7 @@ MERCADO_PAGO_STORE_NAME = 'Vivan Calçados'
 
 MERCADO_PAGO_WEBHOOK_SECRET = '68a7cd45fc10f0ffd71772529e4a9817cbfea00cba3ffbc1bcf027bd7496ce80'
 
+ENDERECO_LOJA = "Av. Theodoro Victorelli"
 
 # Configuração do ambiente (True para sandbox/teste, False para produção)
 MERCADO_PAGO_SANDBOX = True

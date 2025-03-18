@@ -66,16 +66,19 @@
 							<tbody>
 								{% for linha in carrinho.values %}
 								<tr class="text-center">
+									<!-- Botão de remover produto -->
 									<td class="product-remove">
-										<a href="{% url 'produto:removerdocarrinho' %}?vid={{ linha.variacao_id }}">
+										<a href="{% url 'produto:removerdocarrinho' %}?vid={{ linha.variacao_id }}&cid={{ linha.cor_id }}">
 											<span class="ion-ios-close"></span>
 										</a>
 									</td>
-	
+							
+									<!-- Imagem do produto -->
 									<td class="image-prod d-none d-lg-block">
-										<div class="img" style="background-image:url({% get_media_prefix %}{{ linha.imagem }});"></div>
+										<div class="img" style="background-image:url({{ linha.imagem }}); background-size: cover; background-position: center; width: 100px; height: 100px;"></div>
 									</td>
-	
+							
+									<!-- Nome do produto e variação -->
 									<td class="product-name">
 										<h3>
 											<a href="{% url 'produto:detalhe' linha.slug %}">
@@ -83,32 +86,42 @@
 											</a>
 										</h3>
 										{% if linha.variacao_nome %}
-										<p>Tamanho ( {{ linha.variacao_nome }} )</p>
-									{% endif %}
-									</td>
-	
-									<td class="price">
-										{% if linha.preco_unitario_promocional %}
-										{{ linha.preco_unitario_promocional|formata_preco }}
-										{% else %}
-										{{ linha.preco_unitario|formata_preco }}
+											<p>Tamanho: {{ linha.variacao_nome }}</p>
+										{% endif %}
+										{% if linha.cor_nome %}
+											<p>Cor: <span style="color: {{ linha.cor_codigo_hex }};">{{ linha.cor_nome }}</span></p>
 										{% endif %}
 									</td>
-	
+							
+									<!-- Preço unitário -->
+									<td class="price">
+										{% if linha.preco_unitario_promocional and linha.preco_unitario_promocional > 0 %}
+											{{ linha.preco_unitario_promocional|formata_preco }}
+										{% else %}
+											{{ linha.preco_unitario|formata_preco }}
+										{% endif %}
+									</td>
+							
+									<!-- Quantidade -->
 									<td class="quantity">
 										<div class="input-group mb-3">
 											<input type="text" name="quantity" class="quantity form-control input-number" 
 												   value="{{ linha.quantidade }}" min="1" max="100">
 										</div>
 									</td>
-	
+							
+									<!-- Preço total -->
 									<td class="total">
-										{% if linha.preco_quantitativo_promocional %}
-										{{ linha.preco_quantitativo_promocional|formata_preco }}
+										{% if linha.preco_quantitativo_promocional and linha.preco_quantitativo_promocional > 0 %}
+											{{ linha.preco_quantitativo_promocional|formata_preco }}
 										{% else %}
-										{{ linha.preco_quantitativo|formata_preco }}
+											{{ linha.preco_quantitativo|formata_preco }}
 										{% endif %}
 									</td>
+								</tr>
+								{% empty %}
+								<tr>
+									<td colspan="6" class="text-center">Seu carrinho está vazio.</td>
 								</tr>
 								{% endfor %}
 							</tbody>
@@ -125,31 +138,27 @@
 							<span>Subtotal</span>
 							<span>{{ carrinho|cart_totals|formata_preco }}</span>
 						</p> 
-						<p class="d-flex">
-							<span>Frete</span>
-							<span>Gratis</span>
-						</p>
-						{% comment %} <p class="d-flex">
-							<span>Desconto</span>
-							<span>{{ carrinho.discount|formata_preco }}</span>
-						</p> {% endcomment %}
 						<hr>
 						<p class="d-flex total-price">
 							<span>Total</span>
 							<span>{{ carrinho|cart_totals|formata_preco }}</span>
 						</p>
+						<p class="text-muted small text-center mt-3">
+							* O valor do frete será calculado na próxima etapa.
+						</p>
 					</div>
 					<p class="text-center">
 						{% if request.user.is_authenticated %}
-						<a href="{% url 'produto:resumodacompra' %}" class="btn btn-primary py-3 px-4">Solicitar Produto</a>
+							<a href="{% url 'produto:resumodacompra' %}" class="btn btn-primary py-3 px-4">Solicitar Produto</a>
 						{% else %}
-						<a href="{% url 'perfil:criar' %}" class="btn btn-primary py-3 px-4">Entrar ou Cadastrar e Comprar</a>
+							<a href="{% url 'perfil:criar' %}" class="btn btn-primary py-3 px-4">Entrar ou Cadastrar e Comprar</a>
 						{% endif %}
 					</p>
 				</div>
 			</div>
 		</div>
 	</section>
+
 
 	{% include 'parciais/_footer.html' %}
 

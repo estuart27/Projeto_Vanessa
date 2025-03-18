@@ -43,62 +43,73 @@
         {% endif %}
     </div>
 
-    <!-- Order Details -->
-    <div class="order-details">
-        <div class="order-header">
-            <div class="order-title">
-                <h2>Pedido #{{ pedido.id }}</h2>
-                <span class="status-badge status-{{ pedido.status }}">
-                    {{ pedido.get_status_display }}
-                </span>
-            </div>
-
-            <div class="order-summary">
-                <div class="summary-item">
-                    <span class="summary-label">Total a pagar:</span>
-                    <span class="summary-value">{{ pedido.total|formata_preco }}</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">Quantidade de Itens:</span>
-                    <span class="summary-value">{{ pedido.qtd_total }}</span>
-                </div>
-            </div>
+<!-- Order Details -->
+<div class="order-details">
+    <div class="order-header">
+        <div class="order-title">
+            <h2>Pedido #{{ pedido.id }}</h2>
+            <span class="status-badge status-{{ pedido.status }}">
+                {{ pedido.get_status_display }}
+            </span>
         </div>
 
-        <div class="products-section">
-            <h3>Produtos</h3>
-            <div class="table-responsive">
-                <table class="products-table">
-                    <thead>
-                        <tr>
-                            <th class="d-none d-lg-table-cell">Imagem</th>
-                            <th>Produto</th>
-                            <th>Variação</th>
-                            <th>QTD.</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for linha in pedido.itempedido_set.all %}
-                        <tr>
-                            <td class="d-none d-lg-table-cell">
-                                <img class="product-img" src="{% get_media_prefix %}{{ linha.imagem }}" alt="{{ linha.produto }}">
-                            </td>
-                            <td>{{ linha.produto }}</td>
-                            <td>{{ linha.variacao }}</td>
-                            <td>{{ linha.quantidade }}</td>
-                            <td class="price">
-                                {% if linha.preco_promocional %}
-                                    {{ linha.preco_promocional|formata_preco }}
-                                {% else %}
-                                    {{ linha.preco|formata_preco }}
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="order-summary">
+            <div class="summary-item">
+                <span class="summary-label">Total a pagar:</span>
+                <span class="summary-value">{{ pedido.total|formata_preco }}</span>
             </div>
+            <div class="summary-item">
+                <span class="summary-label">Quantidade de Itens:</span>
+                <span class="summary-value">{{ pedido.qtd_total }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="products-section">
+        <h3>Produtos</h3>
+        <div class="table-responsive">
+            <table class="products-table">
+                <thead>
+                    <tr>
+                        <th class="d-none d-lg-table-cell">Imagem</th>
+                        <th>Produto</th>
+                        <th>Tamanho</th>
+                        <th>Cor</th>
+                        <th>QTD.</th>
+                        <th>Preço Unitário</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for linha in pedido.itempedido_set.all %}
+                    <tr>
+                        <td class="d-none d-lg-table-cell">
+                            {% if linha.imagem %}
+                                <img class="product-img" src="{{ linha.imagem }}" alt="{{ linha.produto }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px;">
+                            {% else %}
+                                <img class="product-img" src="{% static 'images/no-image.jpg' %}" alt="Sem imagem" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px;">
+                            {% endif %}
+                        </td>
+                        <td>{{ linha.produto }}</td>
+                        <td>{{ linha.variacao }}</td>
+                        <td>
+                            {% if linha.cor %}
+                                <span style="color: {{ linha.cor_codigo_hex }}; font-weight: bold;">{{ linha.cor }}</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ linha.quantidade }}</td>
+                        <td>
+                            {% if linha.preco_promocional %}
+                                {{ linha.preco_promocional|formata_preco }}
+                            {% else %}
+                                {{ linha.preco|formata_preco }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -138,6 +149,7 @@
         left: 0;
         height: 100%;
         background: #3b82f6;
+        FFA45C
         transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
     }
 

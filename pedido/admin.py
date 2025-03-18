@@ -45,6 +45,7 @@ class ItemPedidoInline(admin.TabularInline):
         
         produto = obj.produto or 'Produto não especificado'
         variacao = obj.variacao or 'Sem variação'
+        cor = obj.cor or 'Cor não especificada'  # Nova linha
         quantidade = obj.quantidade or 0
         preco = obj.preco or 0
         preco_promocional = obj.preco_promocional or 0
@@ -91,7 +92,8 @@ class ItemPedidoInline(admin.TabularInline):
             f'            grid-template-columns: 1fr 1fr; '
             f'            gap: 8px; '
             f'            color: #6c757d;">'
-            f'            <div><strong>Tamanho :</strong> {variacao}</div>'
+            f'            <div><strong>Tamanho:</strong> {variacao}</div>'
+            f'            <div><strong>Cor:</strong> {cor}</div>'  # Nova linha
             f'            <div><strong>Quantidade:</strong> {quantidade}</div>'
             f'            <div><strong>Preço Unitário:</strong> R$ {preco_exibido:.2f}</div>'
             f'            {preco_promocional_html}'
@@ -105,6 +107,9 @@ class ItemPedidoInline(admin.TabularInline):
             f'        </div>'
             f'    </div>'
             f'</div>'
+            # f'<div style="margin-top: 15px; font-size: 14px; color: #6c757d;">'
+            # f'    <strong>VALOR TOTAL DO PEDIDO:</strong> R$ {obj.pedido.total:.2f}'
+            # f'</div>'
         )
 
     item_detalhado.short_description = "Detalhes do Item"
@@ -138,6 +143,7 @@ class PedidoAdmin(admin.ModelAdmin):
             'fields': (
                 'usuario',
                 'status',
+                'frete',
                 'total',
                 'qtd_total',
                 'data',
@@ -274,6 +280,11 @@ class PedidoAdmin(admin.ModelAdmin):
         return "Localização não informada"
     get_cidade_estado.short_description = "Localização"
 
+class ItemPedidoInline(admin.TabularInline):
+    model = ItemPedido
+    extra = 1
+
+admin.site.register(ItemPedido)
 admin.site.register(Pedido, PedidoAdmin)
 
 # from django.contrib import admin

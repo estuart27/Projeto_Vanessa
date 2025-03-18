@@ -1,31 +1,31 @@
-from django.shortcuts import redirect, reverse, get_object_or_404
-from django.views.generic import ListView, DetailView
-from django.views import View
-from django.contrib import messages
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-import mercadopago
-from django.conf import settings
-from django.core.mail import send_mail
+import json
+import uuid
+import time
 import logging
 import traceback
-from django.db import transaction
-from django.http import HttpResponse
-import json
-import logging
-import hmac
-import hashlib
-from django.db.models import Q
+from urllib.parse import quote
 
+import mercadopago
+
+from django.conf import settings
+from django.contrib import messages
+from django.core.mail import send_mail
+from django.db import transaction
+from django.db.models import Q
+from django.http import HttpResponse
+from django.shortcuts import redirect, reverse, get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.generic import ListView, DetailView
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import Pedido, ItemPedido
 from produto.models import Variacao
-
+from perfil.models import Perfil
 
 from utils import utils
-from urllib.parse import quote
 
-# Configurar logger para registrar erros
+
 logger = logging.getLogger(__name__)
 
 
@@ -44,7 +44,7 @@ class DispatchLoginRequiredMixin(View):
         qs = super().get_queryset(*args, **kwargs)
         qs = qs.filter(usuario=self.request.user)
         return qs
-
+    
 
 def pagamento_whatsapp(request):
     try:
@@ -79,7 +79,11 @@ def pagamento_whatsapp(request):
         )
 
         for item in carrinho.values():
-            mensagem += f"   - {item['produto_nome']} ({item['variacao_nome']}) — Qtd: {item['quantidade']}\n"
+            mensagem += (
+                f"   - {item['produto_nome']} ({item['variacao_nome']}) — "
+                f"Cor: {item['cor_nome']} — "
+                f"Qtd: {item['quantidade']}\n"
+            )
 
         mensagem += (
             f"\n💰 *Valor Total:* R$ {cart_total:.2f}\n"
@@ -89,6 +93,9 @@ def pagamento_whatsapp(request):
 
         # Verificar configuração do número de WhatsApp
         whatsapp_number = getattr(settings, 'WHATSAPP_NUMBER', "554330276717")
+        # whatsapp_number = getattr(settings, 'WHATSAPP_NUMBER', "5543996341638")
+
+        
         if not whatsapp_number:
             logger.error("Número de WhatsApp não configurado")
             messages.error(
@@ -97,8 +104,11 @@ def pagamento_whatsapp(request):
             )
             return redirect('produto:lista')
 
+        # Codificar a mensagem para URL
+        mensagem_codificada = quote(mensagem)
+
         # Gerar a URL do WhatsApp
-        whatsapp_url = f"https://wa.me/{whatsapp_number}?text={quote(mensagem)}"
+        whatsapp_url = f"https://wa.me/{whatsapp_number}?text={mensagem_codificada}"
 
         return redirect(whatsapp_url)
     except Exception as e:
@@ -110,13 +120,274 @@ def pagamento_whatsapp(request):
         )
         return redirect('produto:lista')
 
-import uuid
 
-#Viwes Pedidos 
+# class SalvarPedido(View):
+#     template_name = 'pedido/pagar.html'
+
+#     def get(self, *args, **kwargs):
+#         # Adicionar logs para depuração
+#         print("Iniciando SalvarPedido.get()")
+#         try:
+#             if not self.request.user.is_authenticated:
+#                 messages.error(
+#                     self.request,
+#                     'Você precisa fazer login para finalizar a compra.'
+#                 )
+#                 return redirect('perfil:criar')
+
+#             if not self.request.session.get('carrinho'):
+#                 messages.error(
+#                     self.request,
+#                     'Seu carrinho está vazio.'
+#                 )
+#                 return redirect('produto:lista')
+
+#             # Obter o perfil do usuário para cálculo do frete
+#             try:
+#                 perfil = Perfil.objects.get(usuario=self.request.user)
+#             except Perfil.DoesNotExist:
+#                 messages.error(
+#                     self.request,
+#                     'Complete seu perfil para finalizar a compra.'
+#                 )
+#                 return redirect('perfil:criar')
+
+#             # Calcular o frete baseado no endereço do usuário
+#             try:
+#                 # Importar a função de cálculo de frete
+#                 from produto.templatetags.omfilters import calcular_frete
+#                 valor_frete = calcular_frete(perfil)
+#                 print(f"Valor do frete calculado: R$ {valor_frete}")
+#             except Exception as e:
+#                 print(f"Erro ao calcular frete: {str(e)}")
+#                 # Em caso de erro, usar um valor padrão para o frete
+#                 valor_frete = 15.00
+#                 print(f"Usando valor padrão de frete: R$ {valor_frete}")
+
+#             carrinho = self.request.session.get('carrinho')
+#             print(f"Carrinho obtido da sessão: {carrinho}")
+            
+#             # Verificar se há itens no carrinho
+#             if not carrinho:
+#                 messages.error(
+#                     self.request,
+#                     'Seu carrinho está vazio ou inválido.'
+#                 )
+#                 return redirect('produto:lista')
+
+#             carrinho_variacao_ids = []
+#             for item_key in carrinho:
+#                 if '-' in str(item_key):
+#                     variacao_id, cor_id = item_key.split('-')
+#                     if cor_id == 'padrao':
+#                         cor_id = None  # Define cor_id como None para produtos sem cor
+#                     carrinho_variacao_ids.append(int(variacao_id))
+#                 else:
+#                     carrinho_variacao_ids.append(int(item_key))
+            
+#             print(f"IDs de variação no carrinho: {carrinho_variacao_ids}")
+            
+#             # Verificar se as variações existem no banco de dados
+#             bd_variacoes = list(
+#                 Variacao.objects.select_related('produto')
+#                 .filter(id__in=carrinho_variacao_ids)
+#             )
+            
+#             print(f"Variações encontradas no banco: {len(bd_variacoes)}")
+            
+#             # Verificar se todas as variações foram encontradas
+#             if len(bd_variacoes) != len(set(carrinho_variacao_ids)):
+#                 messages.error(
+#                     self.request,
+#                     'Alguns produtos no seu carrinho não estão mais disponíveis. O carrinho foi atualizado.'
+#                 )
+#                 return redirect('produto:carrinho')
+
+#             # Processamento do carrinho
+#             for variacao in bd_variacoes:
+#                 vid = str(variacao.id)
+                
+#                 # Verificar todas as chaves do carrinho que contêm esta variação
+#                 chaves_relacionadas = []
+#                 for item_key in carrinho:
+#                     if '-' in str(item_key):
+#                         v_id, _ = item_key.split('-')
+#                         if v_id == vid:
+#                             chaves_relacionadas.append(item_key)
+#                     elif str(item_key) == vid:
+#                         chaves_relacionadas.append(item_key)
+                
+#                 for chave in chaves_relacionadas:
+#                     # Verificar se a chave existe no carrinho
+#                     if chave not in carrinho:
+#                         continue
+                        
+#                     estoque = variacao.estoque
+#                     qtd_carrinho = carrinho[chave]['quantidade']
+#                     preco_unt = carrinho[chave]['preco_unitario']
+#                     preco_unt_promo = carrinho[chave]['preco_unitario_promocional']
+
+#                     if estoque < qtd_carrinho:
+#                         carrinho[chave]['quantidade'] = estoque
+#                         carrinho[chave]['preco_quantitativo'] = estoque * preco_unt
+#                         carrinho[chave]['preco_quantitativo_promocional'] = estoque * preco_unt_promo
+
+#                         messages.warning(
+#                             self.request,
+#                             f'Estoque insuficiente para o produto "{carrinho[chave]["produto_nome"]}". Quantidade ajustada automaticamente.'
+#                         )
+                    
+#                     # Verificar se o preço foi alterado desde a adição ao carrinho
+#                     preco_atual = variacao.preco
+#                     preco_atual_promo = variacao.preco_promocional
+                    
+#                     if preco_atual != preco_unt or (preco_atual_promo and preco_atual_promo != preco_unt_promo):
+#                         carrinho[chave]['preco_unitario'] = preco_atual
+#                         carrinho[chave]['preco_unitario_promocional'] = preco_atual_promo
+#                         carrinho[chave]['preco_quantitativo'] = qtd_carrinho * preco_atual
+#                         carrinho[chave]['preco_quantitativo_promocional'] = qtd_carrinho * preco_atual_promo if preco_atual_promo else 0
+                        
+#                         messages.info(
+#                             self.request,
+#                             f'O preço do produto "{carrinho[chave]["produto_nome"]}" foi atualizado no seu carrinho.'
+#                         )
+                    
+#             self.request.session.save()
+            
+#             # Recalcular totais após atualizações
+#             qtd_total_carrinho = utils.cart_total_qtd(carrinho)
+#             valor_total_carrinho = utils.cart_totals(carrinho)
+            
+#             # Adicionar o valor do frete ao total
+#             valor_total_com_frete = valor_total_carrinho + valor_frete
+            
+#             print(f"Quantidade total: {qtd_total_carrinho}")
+#             print(f"Subtotal: R$ {valor_total_carrinho}")
+#             print(f"Frete: R$ {valor_frete}")
+#             print(f"Total com frete: R$ {valor_total_com_frete}")
+            
+#             # Verificar se ainda há itens no carrinho após as atualizações
+#             if not carrinho:
+#                 messages.error(
+#                     self.request,
+#                     'Seu carrinho está vazio após as atualizações de estoque.'
+#                 )
+#                 return redirect('produto:lista')
+
+#             # Gerar um identificador único para referência externa
+#             pedido_uuid = str(uuid.uuid4())
+#             print(f"Referência externa gerada: {pedido_uuid}")
+            
+#             # Criar o pedido usando try/except para capturar possíveis erros
+#             # Criar o pedido usando try/except para capturar possíveis erros
+#             try:
+#                 pedido = Pedido(
+#                     usuario=self.request.user,
+#                     total=valor_total_com_frete,  # Total com frete
+#                     frete=valor_frete,  # Valor do frete
+#                     qtd_total=qtd_total_carrinho,
+#                     status='C',  # Status de criado, conforme definido no modelo
+#                     external_reference=pedido_uuid,  # Referência externa para rastreamento
+#                 )
+#                 pedido.save()
+#                 print(f"Pedido criado com ID: {pedido.id}")
+#             except Exception as e:
+#                 print(f"Erro ao criar pedido: {str(e)}")
+#                 messages.error(
+#                     self.request,
+#                     f'Erro ao criar pedido: {str(e)}'
+#                 )
+#                 return redirect('produto:carrinho')
+            
+#             # Criar os itens do pedido
+#             item_pedido_list = []
+#             try:
+#                 for item_key, v in carrinho.items():
+#                     # Verificar se o item_key contém uma cor
+#                     cor_nome = ''
+#                     cor_id = None
+#                     imagem = v.get('imagem', '')
+                    
+#                     if '-' in str(item_key):
+#                         # Se tiver hífen, extrair ID da variação e da cor
+#                         variacao_id, cor_id = item_key.split('-')
+#                         if cor_id == 'padrao':
+#                             cor_id = None  # Define cor_id como None para produtos sem cor
+#                         cor_nome = v.get('cor_nome', '')
+#                     else:
+#                         variacao_id = item_key
+                    
+#                     item = ItemPedido(
+#                         pedido=pedido,
+#                         produto=v['produto_nome'],
+#                         produto_id=v['produto_id'],
+#                         variacao=v['variacao_nome'],
+#                         variacao_id=v['variacao_id'],
+#                         cor=cor_nome,
+#                         cor_id=cor_id,
+#                         preco=v['preco_unitario'],
+#                         preco_promocional=v['preco_unitario_promocional'],
+#                         quantidade=v['quantidade'],
+#                         imagem=imagem
+#                     )
+#                     item_pedido_list.append(item)
+                
+#                 # Criar itens em massa
+#                 ItemPedido.objects.bulk_create(item_pedido_list)
+#                 print(f"Criados {len(item_pedido_list)} itens de pedido")
+#             except Exception as e:
+#                 print(f"Erro ao criar itens do pedido: {str(e)}")
+#                 # Se houve erro ao criar os itens, excluir o pedido para evitar pedidos órfãos
+#                 if pedido.id:
+#                     pedido.delete()
+#                 messages.error(
+#                     self.request,
+#                     f'Erro ao criar itens do pedido: {str(e)}'
+#                 )
+#                 return redirect('produto:carrinho')
+            
+#             # Atualizar estoque das variações
+#             try:
+#                 for v in carrinho.values():
+#                     variacao = Variacao.objects.get(id=v['variacao_id'])
+#                     variacao.estoque -= v['quantidade']
+#                     if variacao.estoque < 0:
+#                         variacao.estoque = 0
+#                     variacao.save()
+#                     print(f"Estoque da variação {variacao.id} atualizado para {variacao.estoque}")
+#             except Exception as e:
+#                 print(f"Erro ao atualizar estoque: {str(e)}")
+#                 # Não vamos reverter o pedido aqui, apenas logar o erro
+            
+#             # Limpar o carrinho após finalizar o pedido
+#             del self.request.session['carrinho']
+#             self.request.session.save()
+            
+#             messages.success(
+#                 self.request,
+#                 'Pedido criado com sucesso! Obrigado pela compra.'
+#             )
+            
+#             print(f"Redirecionando para detalhes do pedido: {pedido.id}")
+#             # Redirecionar para a página de detalhes do pedido
+#             return redirect('pedido:detalhe', pk=pedido.id)
+            
+#         except Exception as e:
+#             import traceback
+#             print(f"Erro geral em SalvarPedido: {str(e)}")
+#             print(traceback.format_exc())
+#             messages.error(
+#                 self.request,
+#                 f'Ocorreu um erro ao processar seu pedido: {str(e)}. Por favor, tente novamente.'
+#             )
+#             return redirect('produto:lista')
+
 class SalvarPedido(View):
     template_name = 'pedido/pagar.html'
 
     def get(self, *args, **kwargs):
+        # Adicionar logs para depuração
+        logger.info("Iniciando SalvarPedido.get()")
         try:
             if not self.request.user.is_authenticated:
                 messages.error(
@@ -132,8 +403,53 @@ class SalvarPedido(View):
                 )
                 return redirect('produto:lista')
 
+            # Obter o perfil do usuário para cálculo do frete
+            try:
+                perfil = Perfil.objects.get(usuario=self.request.user)
+            except Perfil.DoesNotExist:
+                messages.error(
+                    self.request,
+                    'Complete seu perfil para finalizar a compra.'
+                )
+                return redirect('perfil:criar')
+
+            # Calcular o frete baseado no endereço do usuário
+            try:
+                # Importar a função de cálculo de frete
+                from produto.templatetags.frete import calcular_frete
+                valor_frete = calcular_frete(perfil)
+                logger.info(f"Valor do frete calculado: R$ {valor_frete}")
+            except Exception as e:
+                logger.error(f"Erro ao calcular frete: {str(e)}")
+                # Em caso de erro, usar um valor padrão para o frete
+                valor_frete = 15.00
+                logger.info(f"Usando valor padrão de frete: R$ {valor_frete}")
+
             carrinho = self.request.session.get('carrinho')
-            carrinho_variacao_ids = [v for v in carrinho]
+            logger.info(f"Carrinho obtido da sessão: {carrinho}")
+            
+            # Verificar se há itens no carrinho
+            if not carrinho:
+                messages.error(
+                    self.request,
+                    'Seu carrinho está vazio ou inválido.'
+                )
+                return redirect('produto:lista')
+
+            # Extrair todas as chaves de itens do carrinho
+            carrinho_item_keys = [k for k in carrinho]
+            
+            # Extrair IDs de variação, lidando com a possibilidade de chaves com cor
+            carrinho_variacao_ids = []
+            for item_key in carrinho_item_keys:
+                # Se o item_key contiver um hífen, temos uma variação com cor
+                if '-' in str(item_key):
+                    variacao_id, _ = item_key.split('-')
+                    carrinho_variacao_ids.append(int(variacao_id))
+                else:
+                    carrinho_variacao_ids.append(int(item_key))
+            
+            logger.info(f"IDs de variação no carrinho: {carrinho_variacao_ids}")
             
             # Verificar se existem IDs no carrinho
             if not carrinho_variacao_ids:
@@ -151,61 +467,88 @@ class SalvarPedido(View):
                 .filter(id__in=carrinho_variacao_ids)
             )
             
+            logger.info(f"Variações encontradas no banco: {len(bd_variacoes)}")
+            
             # Verificar se todas as variações foram encontradas
-            if len(bd_variacoes) != len(carrinho_variacao_ids):
+            if len(bd_variacoes) != len(set(carrinho_variacao_ids)):
                 messages.error(
                     self.request,
                     'Alguns produtos no seu carrinho não estão mais disponíveis. O carrinho foi atualizado.'
                 )
                 # Remover variações que não existem mais
-                for variacao_id in list(carrinho.keys()):
-                    if int(variacao_id) not in [v.id for v in bd_variacoes]:
-                        del carrinho[variacao_id]
+                for item_key in list(carrinho.keys()):
+                    if '-' in str(item_key):
+                        variacao_id, _ = item_key.split('-')
+                        if int(variacao_id) not in [v.id for v in bd_variacoes]:
+                            del carrinho[item_key]
+                    else:
+                        if int(item_key) not in [v.id for v in bd_variacoes]:
+                            del carrinho[item_key]        
                 self.request.session.save()
                 return redirect('produto:carrinho')
 
+            # Processamento do carrinho
             for variacao in bd_variacoes:
                 vid = str(variacao.id)
-
-                # Verificar se a variação ainda está no carrinho
-                if vid not in carrinho:
-                    continue
-
-                estoque = variacao.estoque
-                qtd_carrinho = carrinho[vid]['quantidade']
-                preco_unt = carrinho[vid]['preco_unitario']
-                preco_unt_promo = carrinho[vid]['preco_unitario_promocional']
-
-                if estoque < qtd_carrinho:
-                    carrinho[vid]['quantidade'] = estoque
-                    carrinho[vid]['preco_quantitativo'] = estoque * preco_unt
-                    carrinho[vid]['preco_quantitativo_promocional'] = estoque * preco_unt_promo
-
-                    messages.warning(
-                        self.request,
-                        f'Estoque insuficiente para o produto "{carrinho[vid]["produto_nome"]}". Quantidade ajustada automaticamente.'
-                    )
-                    
-                # Verificar se o preço foi alterado desde a adição ao carrinho
-                preco_atual = variacao.preco
-                preco_atual_promo = variacao.preco_promocional
                 
-                if preco_atual != preco_unt or (preco_atual_promo and preco_atual_promo != preco_unt_promo):
-                    carrinho[vid]['preco_unitario'] = preco_atual
-                    carrinho[vid]['preco_unitario_promocional'] = preco_atual_promo
-                    carrinho[vid]['preco_quantitativo'] = qtd_carrinho * preco_atual
-                    carrinho[vid]['preco_quantitativo_promocional'] = qtd_carrinho * preco_atual_promo if preco_atual_promo else 0
+                # Verificar todas as chaves do carrinho que contêm esta variação
+                chaves_relacionadas = []
+                for item_key in carrinho:
+                    if '-' in str(item_key):
+                        v_id, _ = item_key.split('-')
+                        if v_id == vid:
+                            chaves_relacionadas.append(item_key)
+                    elif str(item_key) == vid:
+                        chaves_relacionadas.append(item_key)
+                
+                for chave in chaves_relacionadas:
+                    # Verificar se a chave existe no carrinho
+                    if chave not in carrinho:
+                        continue
+                        
+                    estoque = variacao.estoque
+                    qtd_carrinho = carrinho[chave]['quantidade']
+                    preco_unt = carrinho[chave]['preco_unitario']
+                    preco_unt_promo = carrinho[chave]['preco_unitario_promocional']
+
+                    if estoque < qtd_carrinho:
+                        carrinho[chave]['quantidade'] = estoque
+                        carrinho[chave]['preco_quantitativo'] = estoque * preco_unt
+                        carrinho[chave]['preco_quantitativo_promocional'] = estoque * preco_unt_promo
+
+                        messages.warning(
+                            self.request,
+                            f'Estoque insuficiente para o produto "{carrinho[chave]["produto_nome"]}". Quantidade ajustada automaticamente.'
+                        )
                     
-                    messages.info(
-                        self.request,
-                        f'O preço do produto "{carrinho[vid]["produto_nome"]}" foi atualizado no seu carrinho.'
-                    )
+                    # Verificar se o preço foi alterado desde a adição ao carrinho
+                    preco_atual = variacao.preco
+                    preco_atual_promo = variacao.preco_promocional
+                    
+                    if preco_atual != preco_unt or (preco_atual_promo and preco_atual_promo != preco_unt_promo):
+                        carrinho[chave]['preco_unitario'] = preco_atual
+                        carrinho[chave]['preco_unitario_promocional'] = preco_atual_promo
+                        carrinho[chave]['preco_quantitativo'] = qtd_carrinho * preco_atual
+                        carrinho[chave]['preco_quantitativo_promocional'] = qtd_carrinho * preco_atual_promo if preco_atual_promo else 0
+                        
+                        messages.info(
+                            self.request,
+                            f'O preço do produto "{carrinho[chave]["produto_nome"]}" foi atualizado no seu carrinho.'
+                        )
                     
             self.request.session.save()
             
             # Recalcular totais após atualizações
             qtd_total_carrinho = utils.cart_total_qtd(carrinho)
             valor_total_carrinho = utils.cart_totals(carrinho)
+            
+            # Adicionar o valor do frete ao total
+            valor_total_com_frete = valor_total_carrinho + valor_frete
+            
+            logger.info(f"Quantidade total: {qtd_total_carrinho}")
+            logger.info(f"Subtotal: R$ {valor_total_carrinho}")
+            logger.info(f"Frete: R$ {valor_frete}")
+            logger.info(f"Total com frete: R$ {valor_total_com_frete}")
             
             # Verificar se ainda há itens no carrinho após as atualizações
             if not carrinho:
@@ -215,17 +558,44 @@ class SalvarPedido(View):
                 )
                 return redirect('produto:lista')
 
+            # Gerar um identificador único para referência externa
+            pedido_uuid = str(uuid.uuid4())
+            logger.info(f"Referência externa gerada: {pedido_uuid}")
+            
+            # Armazenar na sessão para recuperar posteriormente
+            self.request.session['pedido_referencia'] = pedido_uuid
+            
             # Armazena os dados do carrinho e do pedido temporariamente na sessão
+            # Inclui todos os itens necessários para criar o pedido após o pagamento
             self.request.session['dados_pedido'] = {
                 'usuario_id': self.request.user.id,
-                'total': valor_total_carrinho,
+                'total': valor_total_com_frete,  # Total com frete
+                'frete': valor_frete,  # Valor do frete
                 'qtd_total': qtd_total_carrinho,
-                'status': 'A',
-                'itens': list(carrinho.values()),
-                'external_reference': pedido_uuid  # Adicione aqui também
-
+                'status': 'A',  # Status aprovado
+                'itens': [],  # Será preenchido abaixo
+                'external_reference': pedido_uuid
             }
-
+            
+            # Preencher os itens com todos os detalhes necessários
+            for item_key, item_data in carrinho.items():
+                # Preparar dados do item para a sessão
+                item_info = item_data.copy()  # Copiar todos os dados existentes
+                
+                # Adicionar dados específicos de cor para itens com variação de cor
+                if '-' in str(item_key):
+                    variacao_id, cor_id = item_key.split('-')
+                    item_info['variacao_id'] = int(variacao_id)
+                    if cor_id == 'padrao':
+                        item_info['cor_id'] = None
+                    else:
+                        item_info['cor_id'] = cor_id
+                else:
+                    item_info['cor_id'] = None
+                
+                # Adicionar à lista de itens na sessão
+                self.request.session['dados_pedido']['itens'].append(item_info)
+            
             # Verificar se o token do Mercado Pago está configurado
             if not hasattr(settings, 'MERCADO_PAGO_ACCESS_TOKEN') or not settings.MERCADO_PAGO_ACCESS_TOKEN:
                 logger.error("Token do Mercado Pago não configurado")
@@ -235,54 +605,68 @@ class SalvarPedido(View):
                 )
                 return redirect('produto:carrinho')
             
-
             # Inicializa o SDK do Mercado Pago
             try:
                 sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
-                print("MERCADO_PAGO_ACCESS_TOKEN:", settings.MERCADO_PAGO_ACCESS_TOKEN)
+                logger.info("MERCADO_PAGO_ACCESS_TOKEN configurado com sucesso")
                 nome = getattr(settings, 'MERCADO_PAGO_STORE_NAME', 'Vivan Calçados')
 
                 # Prepara os itens para o Mercado Pago
                 items = []
-                for item_id, item in carrinho.items():
+                for item_key, item in carrinho.items():
                     items.append({
-                        "id": item_id,
+                        "id": item_key,
                         "title": item['produto_nome'],
                         "quantity": item['quantidade'],
                         "currency_id": "BRL",
                         "unit_price": float(item['preco_unitario'])
                     })
+                    
+                # items.append({
+                #     "id": "frete",
+                #     "title": "Frete",
+                #     "quantity": 1,
+                #     "currency_id": "BRL",
+                #     "unit_price": float(valor_frete)
+                # })
 
                 # Verifica URLs de retorno
                 success_url = self.request.build_absolute_uri(reverse('pedido:pagamento_confirmado'))
                 failure_url = self.request.build_absolute_uri(reverse('produto:resumodacompra'))
                 pending_url = self.request.build_absolute_uri(reverse('produto:resumodacompra'))
 
-                pedido_uuid = str(uuid.uuid4())
-                # Armazenar na sessão para recuperar posteriormente
-                self.request.session['pedido_referencia'] = pedido_uuid
-
-
-                # Configura os dados do pagamento
+                # Dados do pagador
+                payer = {
+                    "first_name": self.request.user.first_name or self.request.user.username,
+                    "last_name": self.request.user.last_name or self.request.user.username,
+                    "email": self.request.user.email,
+                }
+                
+                # # Configura os dados do pagamento
                 # payment_data = {
                 #     "items": items,
-                #     "external_reference": pedido_uuid,  # Usando o ID do usuário como referência temporária
+                #     "payer": payer,
                 #     "back_urls": {
                 #         "success": success_url,
                 #         "failure": failure_url,
                 #         "pending": pending_url
                 #     },
                 #     "auto_return": "approved",
-                #     "binary_mode": True,
+                #     "binary_mode": False,  # Permite pagamentos parcelados e cartões
                 #     "statement_descriptor": nome,
-                #     # "notification_url": self.request.build_absolute_uri(reverse('pedido:webhook'))  # Adicione esta linha
-
+                #     "external_reference": pedido_uuid,
+                #     # Permite cartões de crédito e parcelamento
+                #     "payment_methods": {
+                #         "excluded_payment_types": [],
+                #         "excluded_payment_methods": [],
+                #         "default_payment_method_id": None,
+                #         "installments": 12,
+                #         "default_installments": 1
+                #     }
                 # }
-                payer = {
-                    "first_name": self.request.user.username,
-                    "last_name": self.request.user.username,
-                }
-                
+
+
+                # Configura os dados do pagamento
                 payment_data = {
                     "items": items,
                     "payer": payer,
@@ -295,21 +679,26 @@ class SalvarPedido(View):
                     "binary_mode": False,  # Permite pagamentos parcelados e cartões
                     "statement_descriptor": nome,
                     "notification_url": self.request.build_absolute_uri(reverse('pedido:webhook')),
-                    "external_reference": pedido_uuid,  # Passando o UUID como external_reference
-
-
+                    "external_reference": pedido_uuid,
                     # Permite cartões de crédito e parcelamento
                     "payment_methods": {
-                        "excluded_payment_types": [
-                            {"id": "ticket"}  # Exclui boleto, permitindo cartões e Pix
-                        ],
-                        "installments": 12  # Habilita parcelamento até 12x
+                        "excluded_payment_types": [],
+                        "excluded_payment_methods": [],
+                        "default_payment_method_id": None,
+                        "installments": 12,
+                        "default_installments": 1
+                    },
+                    # Adicionar informações de envio com o valor do frete
+                    "shipments": {
+                        "cost": float(valor_frete),
+                        "mode": "not_specified"
                     }
                 }
 
                 preference_response = sdk.preference().create(payment_data)
                 
                 if "response" in preference_response:
+                    logger.info(f"Preference criada com sucesso: {preference_response['response']['id']}")
                     # Guarda o carrinho temporariamente para uso posterior
                     self.request.session['carrinho_temp'] = carrinho
                     # Limpa o carrinho original
@@ -333,7 +722,7 @@ class SalvarPedido(View):
                 )
             
             return redirect('produto:carrinho')
-
+        
         except mercadopago.exceptions.MPException as e:
             logger.error(f"Erro ao processar pagamento com Mercado Pago: {str(e)}")
             messages.error(self.request, 'Erro ao processar o pagamento. Por favor, tente novamente mais tarde.')
@@ -344,7 +733,6 @@ class SalvarPedido(View):
             messages.error(self.request, 'Ocorreu um erro ao processar seu pedido. Por favor, tente novamente.')
             return redirect('produto:lista')
 
-import time
 
 @method_decorator(csrf_exempt, name='dispatch')
 class PagamentoConfirmado(View):
@@ -436,6 +824,7 @@ class PagamentoConfirmado(View):
                         pedido = Pedido(
                             usuario_id=dados_pedido['usuario_id'],
                             total=dados_pedido['total'],
+                            frete=dados_pedido.get('frete', 0),  # Adicionado campo de frete
                             qtd_total=dados_pedido['qtd_total'],
                             status='A',  # Aprovado
                             # Dados do pagamento
@@ -447,7 +836,6 @@ class PagamentoConfirmado(View):
                             site_id=self.request.GET.get('site_id', ''),
                             processing_mode=self.request.GET.get('processing_mode', ''),
                             external_reference=dados_pedido.get('external_reference', ''),  # Referência externa
-
                         )
                         pedido.save()
                         logger.info(f"Novo pedido criado: {pedido.id} (payment_id: {payment_id})")
@@ -462,19 +850,25 @@ class PagamentoConfirmado(View):
                             # Verificar campos obrigatórios
                             if not all(k in v for k in ['produto_nome', 'produto_id', 'variacao_nome', 'variacao_id']):
                                 raise ValueError(f"Dados de item incompletos: {v}")
-                                
+                            
                             item = ItemPedido(
                                 pedido=pedido,
                                 produto=v['produto_nome'],
                                 produto_id=v['produto_id'],
                                 variacao=v['variacao_nome'],
                                 variacao_id=v['variacao_id'],
-                                preco=v['preco_quantitativo'],
-                                preco_promocional=v['preco_quantitativo_promocional'],
+                                cor=v.get('cor_nome', ''),  # Obter o nome da cor com valor padrão vazio
+                                cor_id=v.get('cor_id', None),  # Obter o ID da cor com valor padrão None
+                                preco=v['preco_unitario'],
+                                preco_promocional=v['preco_unitario_promocional'],
                                 quantidade=v['quantidade'],
-                                imagem=v.get('imagem', ''),  # Campo opcional
+                                imagem=v.get('imagem', '')  # Imagem da cor ou imagem padrão
                             )
                             itens_pedido.append(item)
+                        
+                        # Criar itens em massa
+                        ItemPedido.objects.bulk_create(itens_pedido)
+                        logger.info(f"Criados {len(itens_pedido)} itens para o pedido {pedido.id}")
                         
                         # Atualizar estoque das variações
                         for v in dados_pedido['itens']:
@@ -489,10 +883,6 @@ class PagamentoConfirmado(View):
                                 logger.warning(f"Variação {v['variacao_id']} não encontrada ao atualizar estoque")
                             except Exception as e:
                                 logger.error(f"Erro ao atualizar estoque: {str(e)}")
-                        
-                        # Criar itens em massa
-                        ItemPedido.objects.bulk_create(itens_pedido)
-                        logger.info(f"Criados {len(itens_pedido)} itens para o pedido {pedido.id}")
 
                     # Lista de produtos para incluir no email
                     produtos_lista = '\n'.join([
@@ -515,7 +905,8 @@ class PagamentoConfirmado(View):
                                         f'🔹 Status: Confirmado ✅\n\n'
                                         '📝 Seus produtos:\n'
                                         f'{produtos_lista}\n\n'
-                                        f'💰 Total do pedido: R$ {dados_pedido["total"]:.2f}\n\n'
+                                        f'💰 Total do pedido: R$ {dados_pedido["total"]:.2f}\n'
+                                        f'🚚 Valor do frete: R$ {dados_pedido.get("frete", 0):.2f}\n\n'
                                         '📌 O que acontece agora?\n'
                                         '➡️ Nossa equipe está separando os itens do seu pedido.\n'
                                         '➡️ Assim que for enviado, você receberá um novo e-mail com os detalhes.\n\n'
@@ -541,7 +932,8 @@ class PagamentoConfirmado(View):
                                         f'📧 Email: {email_usuario}\n\n'
                                         '📝 Produtos:\n'
                                         f'{produtos_lista}\n\n'
-                                        f'💰 Valor total: R$ {dados_pedido["total"]:.2f}\n\n'
+                                        f'💰 Valor total: R$ {dados_pedido["total"]:.2f}\n'
+                                        f'🚚 Valor do frete: R$ {dados_pedido.get("frete", 0):.2f}\n\n'
                                         '⚠️ Por favor, prepare este pedido para envio.\n\n'
                                         'Este é um email automático do sistema.'
                                     ),
@@ -562,7 +954,7 @@ class PagamentoConfirmado(View):
                                 time.sleep(1)
 
                     # Limpa os dados temporários
-                    keys_to_delete = ['dados_pedido', 'carrinho_temp']
+                    keys_to_delete = ['dados_pedido', 'carrinho_temp', 'pedido_referencia']
                     # Adiciona chaves de sessão temporárias
                     if payment_id and merchant_order_id:
                         keys_to_delete.append(f"pedido_pendente_{payment_id}_{merchant_order_id}")
@@ -619,7 +1011,7 @@ class PagamentoConfirmado(View):
             self.request.session.save()
 
         
-        
+
 @method_decorator(csrf_exempt, name='dispatch')
 class MercadoPagoWebhook(View):
     def post(self, request, *args, **kwargs):
@@ -724,112 +1116,6 @@ class MercadoPagoWebhook(View):
             logger.error(traceback.format_exc())
             return HttpResponse(status=200)  # Retornar 200 mesmo em caso de erro para evitar retentativas
 
-# @method_decorator(csrf_exempt, name='dispatch')
-# class MercadoPagoWebhook(View):
-#     def post(self, request, *args, **kwargs):
-#         try:
-#             # Obter a assinatura do cabeçalho
-#             signature = request.headers.get('X-Signature')
-#             if not signature:
-#                 logger.warning("Webhook recebido sem assinatura")
-#                 return HttpResponse(status=400)
-
-#             # Calcular a assinatura esperada
-#             secret = settings.MERCADO_PAGO_WEBHOOK_SECRET
-#             body = request.body
-#             expected_signature = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
-
-#             # Validar a assinatura
-#             if not hmac.compare_digest(signature, f"sha256={expected_signature}"):
-#                 logger.warning("Assinatura de webhook inválida")
-#                 return HttpResponse(status=401)
-
-#             # Log do payload recebido
-#             payload = json.loads(body)
-#             logger.info(f"Webhook recebido: {payload}")
-
-#             # Verificar o tipo de evento
-#             if payload.get('action') == 'payment.updated' or payload.get('action') == 'payment.created':
-#                 payment_id = payload.get('data', {}).get('id')
-#                 if payment_id:
-#                     # Buscar o pagamento no Mercado Pago para atualizar o status
-#                     sdk = mercadopago.SDK(settings.MERCADO_PAGO_ACCESS_TOKEN)
-#                     payment_info = sdk.payment().get(payment_id)
-
-#                     if "response" in payment_info:
-#                         payment_data = payment_info["response"]
-#                         payment_status = payment_data.get("status")
-#                         external_reference = payment_data.get("external_reference")
-                        
-#                         logger.info(f"Status do pagamento {payment_id}: {payment_status}")
-
-#                         # Tentar encontrar o pedido pelo payment_id
-#                         try:
-#                             pedido = Pedido.objects.filter(
-#                                 Q(payment_id=payment_id) | 
-#                                 Q(external_reference=external_reference)
-#                             ).first()
-                            
-#                             if pedido:
-#                                 # Mapear status do Mercado Pago para status do sistema
-#                                 status_map = {
-#                                     'approved': 'A',  # Aprovado
-#                                     'pending': 'P',   # Pendente
-#                                     'authorized': 'P', # Autorizado mas pendente
-#                                     'in_process': 'P', # Em processamento
-#                                     'in_mediation': 'P', # Em mediação
-#                                     'rejected': 'R',  # Rejeitado
-#                                     'cancelled': 'R', # Cancelado
-#                                     'refunded': 'R',  # Reembolsado
-#                                     'charged_back': 'R' # Estornado
-#                                 }
-                                
-#                                 # Atualizar status do pedido se necessário
-#                                 new_status = status_map.get(payment_status)
-#                                 if new_status and pedido.status != new_status:
-#                                     old_status = pedido.status
-#                                     pedido.status = new_status
-                                    
-#                                     # Atualizar dados do pagamento
-#                                     if not pedido.payment_id:
-#                                         pedido.payment_id = payment_id
-                                    
-#                                     # Extrair outros dados relevantes do pagamento
-#                                     if 'collection_id' in payment_data:
-#                                         pedido.collection_id = payment_data.get('collection_id')
-#                                     if 'payment_type' in payment_data:
-#                                         pedido.payment_type = payment_data.get('payment_type')
-#                                     if 'merchant_order_id' in payment_data:
-#                                         pedido.merchant_order_id = payment_data.get('merchant_order_id')
-#                                     if 'preference_id' in payment_data:
-#                                         pedido.preference_id = payment_data.get('preference_id')
-#                                     if 'site_id' in payment_data:
-#                                         pedido.site_id = payment_data.get('site_id')
-#                                     if 'processing_mode' in payment_data:
-#                                         pedido.processing_mode = payment_data.get('processing_mode')
-                                    
-#                                     pedido.save()
-                                    
-#                                     logger.info(f"Status do pedido {pedido.id} atualizado: {old_status} -> {new_status}")
-#                                 else:
-#                                     logger.info(f"Pedido {pedido.id} já está com status {pedido.status}, não é necessário atualizar")
-#                             else:
-#                                 logger.warning(f"Pedido não encontrado para payment_id={payment_id}, external_reference={external_reference}")
-#                         except Exception as e:
-#                             logger.error(f"Erro ao processar pedido: {str(e)}")
-#                     else:
-#                         logger.error(f"Erro ao consultar pagamento {payment_id}: {payment_info}")
-#             elif payload.get('action') == 'test':
-#                 logger.info("Teste de webhook recebido")
-#             else:
-#                 logger.info(f"Evento não processado: {payload.get('action')}")
-
-#             return HttpResponse(status=200)
-#         except Exception as e:
-#             logger.error(f"Erro ao processar webhook: {str(e)}")
-#             logger.error(traceback.format_exc())
-#             return HttpResponse(status=500)
-
 
 class Detalhe(DispatchLoginRequiredMixin, DetailView):
     model = Pedido
@@ -863,12 +1149,13 @@ class Lista(DispatchLoginRequiredMixin, ListView):
     context_object_name = 'pedidos'
     template_name = 'pedido/lista.html'
     paginate_by = 10
-    ordering = ['-id']
+    ordering = ['-id']        
     
     def get_queryset(self):
         # Adicionar tratamento para possíveis erros na consulta
         try:
-            return super().get_queryset()
+            # return super().get_queryset()
+            return super().get_queryset().filter(usuario=self.request.user)
         except Exception as e:
             logger.error(f"Erro ao listar pedidos: {str(e)}")
             messages.error(

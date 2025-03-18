@@ -2,7 +2,15 @@ from django.contrib import admin
 from .forms import VariacaoObrigatoria
 from . import models
 from django.utils.html import format_html
-from .models import Produto, Category, SubCategory, Contato, Postagem, Comentario
+from .models import Produto, Category, SubCategory, Contato, Postagem, Comentario,Cor
+
+
+class CorInline(admin.TabularInline):
+    model = Cor
+    extra = 1  
+    min_num = 0  # Agora a cor não é obrigatória
+    fields = ['codigo_hex', 'imagem']
+    can_delete = True  
 
 
 class VariacaoInline(admin.TabularInline):
@@ -27,7 +35,7 @@ class ProdutoAdmin(admin.ModelAdmin):
     list_filter = ['tipo', 'category']
     prepopulated_fields = {'slug': ('nome',)}
     ordering = ['nome']
-    inlines = [VariacaoInline]
+    inlines = [VariacaoInline, CorInline]  # Adiciona o inline para cores aqui
 
     def get_preco_formatado(self, obj):
         return obj.get_preco_formatado()
@@ -55,11 +63,12 @@ class PostagemAdmin(admin.ModelAdmin):
     date_hierarchy = 'data_criacao'
 
 
-# @admin.register(Comentario)
-# class ComentarioAdmin(admin.ModelAdmin):
-#     list_display = ('autor', 'postagem', 'data_criacao')
-#     list_filter = ('data_criacao', 'autor')
-#     search_fields = ('conteudo', 'autor__username', 'postagem__titulo')
+@admin.register(Cor)
+class CorAdmin(admin.ModelAdmin):
+    list_display = ['produto', 'codigo_hex', 'imagem']
+    search_fields = ['produto__nome']
+    list_filter = ['produto']
+
 
 
 admin.site.register(models.Produto, ProdutoAdmin)

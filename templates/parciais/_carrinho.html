@@ -6,44 +6,64 @@
         <tr>
             <th class="d-none d-lg-block">Imagem</th>
             <th>Produto</th>
-            <th>V.</th>
+            <th>Variação</th>
             <th>QTD.</th>
             <th>Total</th>
+            <th>Ação</th>
         </tr>
 
         {% for linha in carrinho.values %}
         <tr>
+            <!-- Imagem do produto -->
             <td class="d-none d-lg-block">
-                <img class="cart-img" src="{% get_media_prefix %}{{ linha.imagem }}">
+                <img class="cart-img" src="{{ linha.imagem }}" alt="{{ linha.produto_nome }}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px;">
             </td>
+
+            <!-- Nome do produto e link para detalhes -->
             <td>
                 <a href="{% url 'produto:detalhe' linha.slug %}">
                     {{ linha.produto_nome }}
                 </a>
-
-                <a class="ml-3" href="{% url 'produto:removerdocarrinho' %}?vid={{ linha.variacao_id }}">
-                    <i class="fas fa-times-circle text-danger" aria-hidden="true"></i>
-                </a>
-            </td>
-            <td>{{ linha.variacao_nome }}</td>
-            <td>
-                {{ linha.quantidade }} x
-                {% if linha.preco_unitario_promocional %}
-                {{ linha.preco_unitario_promocional }}
-                {% else %}
-                {{ linha.preco_unitario }}
+                {% if linha.cor_nome %}
+                <p style="margin: 0; font-size: 14px;">
+                    Cor: <span style="color: {{ linha.cor_codigo_hex }};">{{ linha.cor_nome }}</span>
+                </p>
                 {% endif %}
             </td>
 
-            {% if linha.preco_quantitativo_promocional %}
-            <td>{{ linha.preco_quantitativo_promocional|formata_preco }}</td>
-            {% else %}
-            <td>{{ linha.preco_quantitativo|formata_preco }}</td>
-            {% endif %}
+            <!-- Nome da variação -->
+            <td>{{ linha.variacao_nome }}</td>
 
+            <!-- Quantidade e preço unitário -->
+            <td>
+                {{ linha.quantidade }} x 
+                {% if linha.preco_unitario_promocional and linha.preco_unitario_promocional > 0 %}
+                    {{ linha.preco_unitario_promocional|formata_preco }}
+                {% else %}
+                    {{ linha.preco_unitario|formata_preco }}
+                {% endif %}
+            </td>
+
+            <!-- Preço total -->
+            <td>
+                {% if linha.preco_quantitativo_promocional and linha.preco_quantitativo_promocional > 0 %}
+                    {{ linha.preco_quantitativo_promocional|formata_preco }}
+                {% else %}
+                    {{ linha.preco_quantitativo|formata_preco }}
+                {% endif %}
+            </td>
+
+            <!-- Botão de remover item -->
+            <td>
+                <a href="{% url 'produto:removerdocarrinho' %}?vid={{ linha.variacao_id }}&cid={{ linha.cor_id }}" class="text-danger">
+                    <i class="fas fa-trash-alt"></i>
+                </a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" class="text-center">Seu carrinho está vazio.</td>
         </tr>
         {% endfor %}
-
-
     </table>
 </div>
