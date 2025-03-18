@@ -137,9 +137,15 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_URL = '/static/'
 STATIC_ROOT = '/var/www/Projeto_Vanessa/static/'  # Novo caminho
 
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'templates/static'),  # Caso tenha arquivos estáticos locais
+# ]
+
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'templates/static'),  # Caso tenha arquivos estáticos locais
+    BASE_DIR / "static",  # Diretório estático do projeto
+    '/var/www/Projeto_Vanessa/static/',  # Diretório estático do servidor
 ]
+
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/var/www/Projeto_Vanessa/media/'  # Novo caminho para arquivos de mídia
