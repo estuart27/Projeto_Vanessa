@@ -110,8 +110,8 @@ def pagamento_whatsapp(request):
         )
 
         # Verificar configuração do número de WhatsApp
-        # whatsapp_number = getattr(settings, 'WHATSAPP_NUMBER', "554330276717")
-        whatsapp_number = getattr(settings, 'WHATSAPP_NUMBER', "5543996341638")
+        whatsapp_number = getattr(settings, 'WHATSAPP_NUMBER', "554330276717")
+        # whatsapp_number = getattr(settings, 'WHATSAPP_NUMBER', "5543996341638")
 
         
         if not whatsapp_number:
