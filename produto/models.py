@@ -78,12 +78,12 @@ class Comentario(models.Model):
 
 class Cor(models.Model):
     CORES_CHOICES = [
-        ("#000000", "Preto"),
-        ("#FFFFFF", "Branco"),
-        ("#FF0000", "Vermelho"),
-        ("#0000FF", "Azul"),
-        ("#008000", "Verde"),
-        ("#FFFF00", "Amarelo"),
+        ("#FFFFFF", "Branco"),  # Adicionando Branco
+        ("#000000", "Preto"),   # Preto
+        ("#FF0000", "Vermelho"), # Vermelho
+        ("#0000FF", "Azul"),    # Azul
+        ("#008000", "Verde"),   # Verde
+        ("#FFFF00", "Amarelo"), # Amarelo
         ("#FFA500", "Laranja"),
         ("#800080", "Roxo"),
         ("#A52A2A", "Marrom"),
