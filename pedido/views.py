@@ -66,9 +66,25 @@ def pagamento_whatsapp(request):
                 'Seu carrinho está vazio. Adicione produtos antes de finalizar.'
             )
             return redirect('produto:lista')
+        
+        # Obter o perfil do usuário para cálculo do frete
+        try:
+            perfil = Perfil.objects.get(usuario=request.user)
+            # Importar a função de cálculo de frete
+            from produto.templatetags.frete import calcular_frete
+            valor_frete = calcular_frete(perfil)
+        except Exception as e:
+            logger.error(f"Erro ao calcular frete: {str(e)}")
+            # Em caso de erro, usar um valor padrão para o frete
+            valor_frete = 15.00
+            logger.info(f"Usando valor padrão de frete: R$ {valor_frete}")
             
-        # Calcular o total
-        cart_total = sum(item['preco_quantitativo'] for item in carrinho.values())
+        # Calcular o subtotal
+        subtotal = sum(item['preco_quantitativo'] for item in carrinho.values())
+        
+        # Calcular o total com frete
+        total_com_frete = subtotal + valor_frete
+        
         pedido_id = request.session.get('pedido_id', 'N/A')
 
         # Criar a mensagem profissional
@@ -86,14 +102,16 @@ def pagamento_whatsapp(request):
             )
 
         mensagem += (
-            f"\n💰 *Valor Total:* R$ {cart_total:.2f}\n"
+            f"\n💵 *Subtotal:* R$ {subtotal:.2f}\n"
+            f"🚚 *Frete:* R$ {valor_frete:.2f}\n"
+            f"💰 *Valor Total:* R$ {total_com_frete:.2f}\n\n"
             f"Por favor, me informe os detalhes do pagamento.\n"
             f"Agradeço pela preferência! 😊"
         )
 
         # Verificar configuração do número de WhatsApp
-        whatsapp_number = getattr(settings, 'WHATSAPP_NUMBER', "554330276717")
-        # whatsapp_number = getattr(settings, 'WHATSAPP_NUMBER', "5543996341638")
+        # whatsapp_number = getattr(settings, 'WHATSAPP_NUMBER', "554330276717")
+        whatsapp_number = getattr(settings, 'WHATSAPP_NUMBER', "5543996341638")
 
         
         if not whatsapp_number:
