@@ -367,7 +367,7 @@
 			{% for produto_relacionado in produtos_relacionados %}
 			<div class="col-sm-6 col-md-4 col-lg-3 ftco-animate">
 				<div class="product">
-					<a href="{{ produto_relacionado.get_absolute_url }}" class="img-prod">
+					<a href="{% url 'produto:detalhe' produto_relacionado.slug %}" class="img-prod">
 						<img class="img-fluid" src="{{ produto_relacionado.imagem.url }}" alt="{{ produto_relacionado.nome }}">
 						{% if produto_relacionado.preco_marketing_promocional %}
 						<span class="status">Promoção</span>
@@ -375,7 +375,7 @@
 						<div class="overlay"></div>
 					</a>
 					<div class="text py-3 px-3">
-						<h3><a href="{{ produto_relacionado.get_absolute_url }}">{{ produto_relacionado.nome }}</a></h3>
+						<h3><a href="{% url 'produto:detalhe' produto_relacionado.slug %}">{{ produto_relacionado.nome }}</a></h3>
 						<div class="d-flex">
 							<div class="pricing">
 								<p class="price">
@@ -398,7 +398,7 @@
 							</div>
 						</div>
 						<p class="bottom-area d-flex px-3">
-							<a href="{{ produto_relacionado.get_absolute_url }}" class="buy-now text-center py-2">
+							<a href="{% url 'produto:detalhe' produto_relacionado.slug %}" class="buy-now text-center py-2">
 								Comprar<span><i class="ion-ios-cart ml-1"></i></span>
 							</a>
 						</p>
