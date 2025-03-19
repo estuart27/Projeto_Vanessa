@@ -290,7 +290,11 @@ class DetalheProduto(DetailView):
             desconto = 0
         
         context['desconto'] = desconto
-        context['produtos_relacionados'] = Produto.objects.filter(category=produto.category).exclude(id=produto.id)[:4]
+        # context['produtos_relacionados'] = Produto.objects.filter(category=produto.category).exclude(id=produto.id)[:4]
+        # No modelo Produto, verifique se o método get_absolute_url está correto
+        # Exemplo:
+        def get_absolute_url(self):
+            return reverse('produto:detalhe', kwargs={'slug': self.slug})
         
         return context
 
